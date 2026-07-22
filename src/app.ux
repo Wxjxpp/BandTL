@@ -1,0 +1,12 @@
+<script>
+  /**
+   * 应用级别的配置，供所有页面公用
+   * manifest 配置信息会被编译器注入，请勿删除 /**manifest**/ 标识
+   */
+  import dict from './common/scripts/dict'
+
+  export default {
+    // 暴露词典管理模块给所有页面，页面内通过 this.$app.$def.dict 访问
+    dict: dict
+  }
+</script>

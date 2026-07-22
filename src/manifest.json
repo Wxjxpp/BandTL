@@ -1,0 +1,47 @@
+{
+  "package": "com.wristband.dict",
+  "name": "手环词典",
+  "icon": "/Common/images/logo.png",
+  "versionName": "1.0.0",
+  "versionCode": 1,
+  "minPlatformVersion": 1000,
+  "deviceTypeList": ["watch"],
+  "features": [
+    { "name": "system.router" },
+    { "name": "system.file" },
+    { "name": "system.storage" },
+    { "name": "system.fetch" },
+    { "name": "system.prompt" },
+    { "name": "system.device" },
+    { "name": "system.vibrator" }
+  ],
+  "config": {
+    "logLevel": "log",
+    "designWidth": 336
+  },
+  "router": {
+    "entry": "pages/index",
+    "pages": {
+      "pages/index": {
+        "component": "index",
+        "path": "/",
+        "launchMode": "singleTask"
+      },
+      "pages/detail": {
+        "component": "detail",
+        "path": "/detail"
+      },
+      "pages/import": {
+        "component": "import",
+        "path": "/import"
+      },
+      "pages/manage": {
+        "component": "manage",
+        "path": "/manage"
+      }
+    }
+  },
+  "display": {
+    "backgroundColor": "#000000"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "app_name": "手环词典",
+  "search_placeholder": "点击下方键盘输入",
+  "no_result": "未找到匹配词条",
+  "loading": "加载中...",
+  "import_dict": "导入词典",
+  "manage_dict": "词典管理",
+  "back": "返回",
+  "confirm": "确定",
+  "cancel": "取消",
+  "delete": "删除"
+}

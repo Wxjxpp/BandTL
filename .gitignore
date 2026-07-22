@@ -1,0 +1,22 @@
+# 构建产物
+dist/
+build/
+
+# 依赖
+node_modules/
+
+# 日志
+*.log
+npm-debug.log*
+
+# 编辑器
+.vscode/
+.idea/
+.DS_Store
+
+# 签名私钥（保留证书结构，不提交私钥）
+sign/private.pem
+
+# 临时文件
+*.tmp
+*.bak

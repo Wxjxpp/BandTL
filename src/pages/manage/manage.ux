@@ -1,0 +1,214 @@
+<template>
+  <div class="page">
+    <!-- 顶部返回栏 -->
+    <div class="header">
+      <text class="back-btn" onclick="goBack">‹ 返回</text>
+      <text class="title">词典管理</text>
+    </div>
+
+    <!-- 内容区 -->
+    <scroll class="content" scroll-y="true">
+      <!-- 当前词典状态 -->
+      <div class="card">
+        <text class="card-title">当前词典</text>
+        <text class="dict-name">{{dictName}}</text>
+        <text class="dict-meta">词条数：{{wordCount}}</text>
+        <text class="dict-meta" if="{{dictSource}}">来源：{{dictSource}}</text>
+      </div>
+
+      <!-- 内置词典 -->
+      <div class="card">
+        <text class="card-title">内置词典</text>
+        <div class="dict-row">
+          <text class="dict-label">基础英汉词典</text>
+          <text class="dict-tag">内置</text>
+        </div>
+        <text class="dict-meta">60 个基础词条，开箱即用</text>
+        <input class="btn" type="button" value="使用内置词典" onclick="useBuiltin" if="{{dictSource !== 'builtin'}}" />
+      </div>
+
+      <!-- 用户导入词典 -->
+      <div class="card">
+        <text class="card-title">已导入词典</text>
+        <div class="dict-row" if="{{hasUserDict}}">
+          <text class="dict-label">{{userDictName}}</text>
+          <text class="dict-tag tag-user">导入</text>
+        </div>
+        <text class="dict-meta" if="{{hasUserDict}}">{{userWordCount}} 个词条</text>
+        <text class="empty-tip" if="{{!hasUserDict}}">暂无导入的词典</text>
+        <input class="btn" type="button" value="导入新词典" onclick="goImport" />
+        <input class="btn btn-danger" type="button" value="删除已导入词典" onclick="removeUserDict" if="{{hasUserDict}}" />
+      </div>
+    </scroll>
+  </div>
+</template>
+
+<style>
+  .page {
+    flex-direction: column;
+    background-color: #000000;
+    width: 100%;
+    height: 100%;
+  }
+  .header {
+    width: 100%;
+    height: 56px;
+    flex-direction: row;
+    align-items: center;
+    background-color: #111111;
+    padding: 0 16px;
+  }
+  .back-btn {
+    font-size: 24px;
+    color: #09ba07;
+    margin-right: 16px;
+  }
+  .title {
+    font-size: 24px;
+    color: #ffffff;
+  }
+  .content {
+    flex: 1;
+    width: 100%;
+  }
+  .card {
+    flex-direction: column;
+    margin: 12px;
+    padding: 16px;
+    background-color: #111111;
+    border-radius: 12px;
+  }
+  .card-title {
+    font-size: 22px;
+    color: #888888;
+    margin-bottom: 12px;
+  }
+  .dict-name {
+    font-size: 28px;
+    color: #ffffff;
+    font-weight: bold;
+  }
+  .dict-row {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .dict-label {
+    font-size: 24px;
+    color: #ffffff;
+  }
+  .dict-tag {
+    font-size: 16px;
+    color: #09ba07;
+    border: 1px solid #09ba07;
+    border-radius: 6px;
+    padding: 2px 8px;
+  }
+  .tag-user {
+    color: #ff9800;
+    border-color: #ff9800;
+  }
+  .dict-meta {
+    font-size: 20px;
+    color: #888888;
+    margin-top: 6px;
+  }
+  .empty-tip {
+    font-size: 20px;
+    color: #555555;
+    margin: 8px 0;
+  }
+  .btn {
+    width: 100%;
+    height: 50px;
+    margin-top: 14px;
+    border-radius: 25px;
+    background-color: #09ba07;
+    font-size: 22px;
+    color: #ffffff;
+  }
+  .btn-danger {
+    background-color: #cc3333;
+  }
+</style>
+
+<script>
+  import router from '@system.router'
+
+  export default {
+    private: {
+      dictName: '',
+      wordCount: 0,
+      dictSource: '',
+      hasUserDict: false,
+      userDictName: '',
+      userWordCount: 0
+    },
+
+    onInit() {
+      this.loadDictInfo()
+    },
+
+    onShow() {
+      // 从导入页返回后刷新
+      this.loadDictInfo()
+    },
+
+    loadDictInfo() {
+      const that = this
+      const dictMgr = this.$app.$def.dict
+      // 检查用户词典
+      dictMgr.loadUserDict(function (uRes) {
+        if (uRes.success && uRes.dict) {
+          that.hasUserDict = true
+          that.userDictName = uRes.dict.name || '用户词典'
+          that.userWordCount = (uRes.dict.words && uRes.dict.words.length) || 0
+          that.dictName = that.userDictName
+          that.wordCount = that.userWordCount
+          that.dictSource = '用户导入'
+        } else {
+          that.hasUserDict = false
+          // 回退内置
+          dictMgr.loadBuiltinDict(function (bRes) {
+            if (bRes.success && bRes.dict) {
+              that.dictName = bRes.dict.name || '基础英汉词典'
+              that.wordCount = (bRes.dict.words && bRes.dict.words.length) || 0
+              that.dictSource = '内置'
+            }
+          })
+        }
+      })
+    },
+
+    useBuiltin() {
+      // 删除用户词典即恢复内置
+      const that = this
+      const dictMgr = this.$app.$def.dict
+      dictMgr.removeUserDict(function (res) {
+        if (res.success) {
+          dictMgr.showToast('已切换为内置词典')
+          that.loadDictInfo()
+        }
+      })
+    },
+
+    goImport() {
+      router.push({ uri: '/import' })
+    },
+
+    removeUserDict() {
+      const that = this
+      const dictMgr = this.$app.$def.dict
+      dictMgr.removeUserDict(function (res) {
+        if (res.success) {
+          dictMgr.showToast('已删除导入词典')
+          that.loadDictInfo()
+        }
+      })
+    },
+
+    goBack() {
+      router.back()
+    }
+  }
+</script>

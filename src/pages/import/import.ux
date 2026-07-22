@@ -1,0 +1,223 @@
+<template>
+  <div class="page">
+    <!-- 顶部返回栏 -->
+    <div class="header">
+      <text class="back-btn" onclick="goBack">‹ 返回</text>
+      <text class="title">导入词典</text>
+    </div>
+
+    <!-- 内容区 -->
+    <scroll class="content" scroll-y="true">
+      <div class="form-area">
+        <!-- 说明 -->
+        <text class="section-label">词典 JSON 地址</text>
+        <text class="hint">输入词典文件的 URL（需为公网可访问的 JSON）</text>
+
+        <!-- URL 输入区：用手环输入法输入 -->
+        <div class="url-input" onclick="toggleKeyboard">
+          <text class="url-text" if="{{url}}">{{url}}</text>
+          <text class="url-placeholder" if="{{!url}}">点击输入 URL</text>
+        </div>
+
+        <!-- 格式说明 -->
+        <text class="section-label">词典格式</text>
+        <text class="format-code">{
+  "name": "词典名",
+  "words": [
+    {"id":1,"word":"apple",
+     "phonetic":"ˈæpl",
+     "translation":"n. 苹果"}
+  ]
+}</text>
+
+        <!-- 导入按钮 -->
+        <input class="btn-import" type="button" value="{{importing ? '导入中...' : '开始导入'}}" onclick="doImport" />
+      </div>
+
+      <!-- 输入法键盘 -->
+      <div class="keyboard-area" if="{{showKeyboard}}">
+        <div class="input-preview">
+          <text class="preview-text">{{url}}<text class="cursor">_</text></text>
+        </div>
+        <input-method
+          hide="{{!showKeyboard}}"
+          keyboardtype="QWERTY"
+          maxlength="6"
+          vibratemode="short"
+          screentype="rect"
+          @complete="onInputComplete"
+          @delete="onInputDelete"
+          @key-down="onKeyDown">
+        </input-method>
+      </div>
+    </scroll>
+  </div>
+</template>
+
+<import name="input-method" src="../../common/components/InputMethod/InputMethod.ux"></import>
+
+<style>
+  .page {
+    flex-direction: column;
+    background-color: #000000;
+    width: 100%;
+    height: 100%;
+  }
+  .header {
+    width: 100%;
+    height: 56px;
+    flex-direction: row;
+    align-items: center;
+    background-color: #111111;
+    padding: 0 16px;
+  }
+  .back-btn {
+    font-size: 24px;
+    color: #09ba07;
+    margin-right: 16px;
+  }
+  .title {
+    font-size: 24px;
+    color: #ffffff;
+  }
+  .content {
+    flex: 1;
+    width: 100%;
+  }
+  .form-area {
+    flex-direction: column;
+    padding: 16px;
+  }
+  .section-label {
+    font-size: 22px;
+    color: #888888;
+    margin-top: 16px;
+    margin-bottom: 8px;
+  }
+  .hint {
+    font-size: 18px;
+    color: #555555;
+    margin-bottom: 8px;
+  }
+  .url-input {
+    width: 100%;
+    height: 60px;
+    background-color: #1a1a1a;
+    border: 1px solid #09ba07;
+    border-radius: 8px;
+    justify-content: center;
+    padding: 0 12px;
+  }
+  .url-text {
+    font-size: 20px;
+    color: #ffffff;
+    lines: 1;
+    text-overflow: ellipsis;
+  }
+  .url-placeholder {
+    font-size: 20px;
+    color: #555555;
+  }
+  .format-code {
+    font-size: 16px;
+    color: #09ba07;
+    background-color: #111111;
+    padding: 12px;
+    border-radius: 8px;
+    line-height: 22px;
+  }
+  .btn-import {
+    width: 100%;
+    height: 56px;
+    margin-top: 24px;
+    border-radius: 28px;
+    background-color: #09ba07;
+    font-size: 26px;
+    color: #ffffff;
+  }
+  .keyboard-area {
+    width: 100%;
+    height: 320px;
+    flex-direction: column;
+  }
+  .input-preview {
+    width: 100%;
+    height: 50px;
+    justify-content: center;
+    align-items: center;
+    background-color: #111111;
+  }
+  .preview-text {
+    font-size: 22px;
+    color: #ffffff;
+    lines: 1;
+    text-overflow: ellipsis;
+  }
+  .cursor {
+    color: #09ba07;
+  }
+</style>
+
+<script>
+  import router from '@system.router'
+
+  export default {
+    private: {
+      url: '',
+      showKeyboard: false,
+      importing: false
+    },
+
+    toggleKeyboard() {
+      this.showKeyboard = !this.showKeyboard
+    },
+
+    onInputComplete(evt) {
+      const content = evt.detail && evt.detail.content
+      if (content) {
+        this.url = this.url + content
+      }
+    },
+
+    onInputDelete() {
+      if (this.url.length > 0) {
+        this.url = this.url.slice(0, -1)
+      }
+    },
+
+    onKeyDown(evt) {
+      const content = evt.detail && evt.detail.content
+      if (content) {
+        // URL 中符号映射（输入法默认输出字母，符号需手动补）
+        const symbolMap = { ' ': ' ' }
+        this.url = this.url + (symbolMap[content] || content)
+      }
+    },
+
+    doImport() {
+      if (this.importing) return
+      if (!this.url) {
+        this.$app.$def.dict.showToast('请先输入 URL')
+        return
+      }
+      const that = this
+      this.importing = true
+      this.showKeyboard = false
+      const dictMgr = this.$app.$def.dict
+      dictMgr.importFromUrl(this.url, function (res) {
+        that.importing = false
+        if (res.success) {
+          dictMgr.showToast('导入成功：' + (res.dict.name || '') + ' 共' + (res.dict.words.length) + '词')
+          // 返回主页
+          router.back()
+        } else {
+          dictMgr.showToast('导入失败：' + (res.error || ''))
+        }
+      })
+    },
+
+    goBack() {
+      router.back()
+    }
+  }
+</script>

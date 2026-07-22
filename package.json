@@ -1,0 +1,12 @@
+{
+  "name": "wristband-dict",
+  "version": "1.0.0",
+  "description": "小米手环9 Pro 词典快应用 - 支持外界导入词典、手环输入法本地搜索",
+  "scripts": {
+    "build": "hap build",
+    "debug": "hap debug",
+    "release": "hap release"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}
