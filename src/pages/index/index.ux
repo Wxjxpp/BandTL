@@ -18,8 +18,8 @@
 
     <!-- 搜索结果列表 -->
     <div class="result-area" if="{{!showKeyboard}}">
-      <list class="result-list" id="resultList" bounces="true">
-        <list-item class="result-item" for="{{results}}" tid="id" type="word" onclick="onWordClick({{$item}})">
+      <list class="result-list" id="resultList">
+        <list-item class="result-item" for="{{results}}" tid="id" type="word" onclick="onWordClick">
           <div class="word-row">
             <text class="word">{{$item.word}}</text>
             <text class="phonetic" if="{{$item.phonetic}}">/{{$item.phonetic}}/</text>
@@ -42,7 +42,7 @@
     <!-- 输入法键盘区（显隐切换） -->
     <div class="keyboard-area" if="{{showKeyboard}}">
       <div class="input-preview">
-        <text class="preview-text">{{query}}<text class="cursor">_</text></text>
+        <text class="preview-text">{{query}}<span class="cursor">_</span></text>
       </div>
       <input-method
         hide="{{!showKeyboard}}"
@@ -140,7 +140,7 @@
   }
   .word-row {
     flex-direction: row;
-    align-items: baseline;
+    align-items: flex-end;
   }
   .word {
     font-size: 26px;
@@ -287,7 +287,9 @@
     },
 
     // 点击词条跳转详情
-    onWordClick(item) {
+    onWordClick(evt) {
+      // 事件对象中获取被点击的 list-item 绑定的数据
+      const item = evt && evt.detail ? evt.detail : null
       router.push({
         uri: '/detail',
         params: {

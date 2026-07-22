@@ -37,7 +37,7 @@
       <!-- 输入法键盘 -->
       <div class="keyboard-area" if="{{showKeyboard}}">
         <div class="input-preview">
-          <text class="preview-text">{{url}}<text class="cursor">_</text></text>
+          <text class="preview-text">{{url}}<span class="cursor">_</span></text>
         </div>
         <input-method
           hide="{{!showKeyboard}}"

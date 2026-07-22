@@ -836,7 +836,6 @@ export default {
   flex:1;
   height:55px;
   margin:0 3px;
-  width:unset;
 }
 
 @media (min-width: 230) and (max-width: 235) and (shape: circle) {
