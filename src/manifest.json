@@ -2,10 +2,10 @@
   "package": "com.wristband.dict",
   "name": "手环词典",
   "icon": "/common/images/logo.png",
-  "versionName": "1.0.2",
-  "versionCode": 3,
+  "versionName": "1.0.3",
+  "versionCode": 4,
   "minAPILevel": 1,
-  "deviceTypeList": ["watch"],
+  "deviceTypeList": ["band", "watch"],
   "features": [
     { "name": "system.router" },
     { "name": "system.file" },
