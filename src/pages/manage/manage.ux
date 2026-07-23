@@ -70,10 +70,14 @@
   .content {
     flex: 1;
     width: 100%;
+    flex-direction: column;
   }
   .card {
     flex-direction: column;
-    margin: 12px;
+    margin-left: 12px;
+    margin-right: 12px;
+    margin-top: 6px;
+    margin-bottom: 6px;
     padding: 16px;
     background-color: #111111;
     border-radius: 12px;
@@ -157,25 +161,22 @@
     loadDictInfo() {
       const that = this
       const dictMgr = this.$app.$def.dict
-      // 检查用户词典
-      dictMgr.loadUserDict(function (uRes) {
-        if (uRes.success && uRes.dict) {
-          that.hasUserDict = true
-          that.userDictName = uRes.dict.name || '用户词典'
-          that.userWordCount = (uRes.dict.words && uRes.dict.words.length) || 0
-          that.dictName = that.userDictName
-          that.wordCount = that.userWordCount
-          that.dictSource = '用户导入'
-        } else {
-          that.hasUserDict = false
-          // 回退内置
-          dictMgr.loadBuiltinDict(function (bRes) {
-            if (bRes.success && bRes.dict) {
-              that.dictName = bRes.dict.name || '基础英汉词典'
-              that.wordCount = (bRes.dict.words && bRes.dict.words.length) || 0
-              that.dictSource = '内置'
-            }
-          })
+      // getActiveDict 会先立即返回内置词典，再异步尝试用户词典
+      dictMgr.getActiveDict(function (res) {
+        if (res.success && res.dict) {
+          if (res.dict.source === 'user') {
+            that.hasUserDict = true
+            that.userDictName = res.dict.name || '用户词典'
+            that.userWordCount = (res.dict.words && res.dict.words.length) || 0
+            that.dictName = that.userDictName
+            that.wordCount = that.userWordCount
+            that.dictSource = '用户导入'
+          } else {
+            that.hasUserDict = false
+            that.dictName = res.dict.name || '基础英汉词典'
+            that.wordCount = (res.dict.words && res.dict.words.length) || 0
+            that.dictSource = '内置'
+          }
         }
       })
     },
