@@ -1,0 +1,13 @@
+{
+    "name": "BandTL 词典导入",
+    "icon": "icon.png",
+    "version": "1.0.5",
+    "description": "为 BandTL 手环词典选择本地 JSON 词典文件并推送到已连接的小米手环9 Pro",
+    "author": "BandTL",
+    "website": "https://github.com/sf-yuzifu/BandTL",
+    "entry": "bandtl_dict_importer.wasm",
+    "wasi_version": 2,
+    "api_level": 3,
+    "permissions": ["device", "dialog", "interconnect"],
+    "additional_files": []
+}

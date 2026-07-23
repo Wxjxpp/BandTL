@@ -1,18 +1,141 @@
 /**
  * 词典数据管理模块
  * 负责：内置词典加载、用户词典导入/持久化、词典切换、本地搜索匹配
- * 适配 Vela 快应用 system.file / system.storage / system.fetch 接口
+ *       interconnect 分块接收（来自 AstroBox BandTL 词典导入插件）
+ * 适配 Vela 快应用 system.file / system.storage / system.interconnect 接口
  */
 
 import file from '@system.file'
 import storage from '@system.storage'
-import fetch from '@system.fetch'
 import prompt from '@system.prompt'
 
 // 持久化存储的文件 URI
 const USER_DICT_URI = 'internal://files/user_dict.json'
-const DICT_INDEX_URI = 'internal://files/dict_index.json'
 const ACTIVE_DICT_KEY = 'active_dict_name'
+
+// ===== interconnect 分块接收状态 =====
+// 协议帧（均为 JSON 字符串）：
+//   {"type":"start","name":"词典名","total":N}
+//   {"type":"chunk","index":i,"content":"..."}
+//   {"type":"end"}
+let importState = {
+  phase: 'idle',        // idle | receiving | done | error
+  name: '',
+  received: 0,
+  total: 0,
+  chunks: [],
+  error: '',
+  dict: null
+}
+let importListeners = []
+
+function cloneState() {
+  return {
+    phase: importState.phase,
+    name: importState.name,
+    received: importState.received,
+    total: importState.total,
+    error: importState.error,
+    dict: importState.dict
+  }
+}
+
+function notifyListeners() {
+  const snap = cloneState()
+  for (let i = 0; i < importListeners.length; i++) {
+    try {
+      importListeners[i](snap)
+    } catch (e) {
+      // 忽略单个监听器异常
+    }
+  }
+}
+
+/**
+ * 处理来自 interconnect 的一帧消息（字符串）
+ * @param {String} msgStr
+ */
+function handleInterconnectMessage(msgStr) {
+  let frame
+  try {
+    frame = JSON.parse(msgStr)
+  } catch (e) {
+    importState.phase = 'error'
+    importState.error = '收到无法解析的帧'
+    notifyListeners()
+    return
+  }
+  if (!frame || !frame.type) return
+
+  if (frame.type === 'start') {
+    importState.phase = 'receiving'
+    importState.name = frame.name || '推送词典'
+    importState.total = frame.total || 0
+    importState.received = 0
+    importState.chunks = []
+    importState.error = ''
+    importState.dict = null
+    notifyListeners()
+    return
+  }
+
+  if (frame.type === 'chunk') {
+    if (importState.phase !== 'receiving') return
+    const idx = frame.index
+    importState.chunks[idx] = frame.content || ''
+    importState.received = importState.received + 1
+    notifyListeners()
+    return
+  }
+
+  if (frame.type === 'end') {
+    if (importState.phase !== 'receiving') return
+    // 合并所有分块
+    let fullText = ''
+    for (let i = 0; i < importState.chunks.length; i++) {
+      const c = importState.chunks[i]
+      if (c !== undefined && c !== null) {
+        fullText += c
+      }
+    }
+    let dict
+    try {
+      dict = JSON.parse(fullText)
+    } catch (e) {
+      importState.phase = 'error'
+      importState.error = '词典 JSON 解析失败'
+      importState.chunks = []
+      notifyListeners()
+      return
+    }
+    // 校验词典结构
+    if (!dict || !dict.words || !Array.isArray(dict.words)) {
+      importState.phase = 'error'
+      importState.error = '词典格式不符：缺少 words 数组'
+      importState.chunks = []
+      notifyListeners()
+      return
+    }
+    dict.source = 'user'
+    dict.importedAt = Date.now()
+    // 持久化
+    saveUserDict(dict, function (res) {
+      if (res.success) {
+        storage.set({ key: ACTIVE_DICT_KEY, value: dict.name || '用户词典' })
+        importState.phase = 'done'
+        importState.dict = dict
+        importState.chunks = []
+        notifyListeners()
+      } else {
+        importState.phase = 'error'
+        importState.error = res.error || '保存失败'
+        importState.chunks = []
+        notifyListeners()
+      }
+    })
+    return
+  }
+}
 
 /**
  * 读取内置词典（打包进 rpk 的资源，只读）
@@ -78,53 +201,6 @@ function saveUserDict(dict, callback) {
     },
     fail: function (data, code) {
       callback({ success: false, error: '保存词典失败 code=' + code })
-    }
-  })
-}
-
-/**
- * 从网络 URL 下载词典并导入持久化
- * @param {String} url 词典 JSON 的 URL
- * @param {Function} callback({success: Boolean, dict: Object, error: String})
- */
-function importFromUrl(url, callback) {
-  fetch.fetch({
-    url: url,
-    responseType: 'json',
-    success: function (response) {
-      if (response.code !== 200) {
-        callback({ success: false, error: '下载失败 HTTP ' + response.code })
-        return
-      }
-      let dict = response.data
-      // responseType=json 时 data 可能已是对象，也可能为字符串
-      if (typeof dict === 'string') {
-        try {
-          dict = JSON.parse(dict)
-        } catch (e) {
-          callback({ success: false, error: '词典 JSON 格式错误' })
-          return
-        }
-      }
-      // 校验词典结构
-      if (!dict || !dict.words || !Array.isArray(dict.words)) {
-        callback({ success: false, error: '词典格式不符：缺少 words 数组' })
-        return
-      }
-      dict.source = 'user'
-      dict.importedAt = Date.now()
-      saveUserDict(dict, function (res) {
-        if (res.success) {
-          // 记录为当前启用词典
-          storage.set({ key: ACTIVE_DICT_KEY, value: dict.name || '用户词典' })
-          callback({ success: true, dict: dict })
-        } else {
-          callback({ success: false, error: res.error })
-        }
-      })
-    },
-    fail: function (data, code) {
-      callback({ success: false, error: '网络请求失败 code=' + code })
     }
   })
 }
@@ -227,11 +303,33 @@ export default {
   loadBuiltinDict: loadBuiltinDict,
   loadUserDict: loadUserDict,
   saveUserDict: saveUserDict,
-  importFromUrl: importFromUrl,
   getActiveDict: getActiveDict,
   removeUserDict: removeUserDict,
   search: search,
   showToast: showToast,
+  // interconnect 接收相关
+  handleInterconnectMessage: handleInterconnectMessage,
+  onImportStatus: function (fn) {
+    importListeners.push(fn)
+    // 立即推送一次当前状态
+    try { fn(cloneState()) } catch (e) {}
+    return function () {
+      const i = importListeners.indexOf(fn)
+      if (i >= 0) importListeners.splice(i, 1)
+    }
+  },
+  resetImportState: function () {
+    importState = {
+      phase: 'idle',
+      name: '',
+      received: 0,
+      total: 0,
+      chunks: [],
+      error: '',
+      dict: null
+    }
+    notifyListeners()
+  },
   USER_DICT_URI: USER_DICT_URI,
   ACTIVE_DICT_KEY: ACTIVE_DICT_KEY
 }

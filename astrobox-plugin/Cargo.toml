@@ -1,0 +1,21 @@
+[package]
+name = "bandtl-dict-importer"
+version = "1.0.5"
+edition = "2024"
+description = "BandTL 手环词典导入插件 - 选择本地 JSON 词典并推送到手环"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+astrobox-ng-wit = "0.3"
+tracing = "0.1"
+tracing-subscriber = "0.3"
+serde_json = "1.0"
+serde = { version = "1.0", features = ["derive"] }
+
+[profile.release]
+opt-level = "z"
+lto = true
+codegen-units = 1
+strip = true

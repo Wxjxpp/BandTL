@@ -1,8 +1,8 @@
 {
   "package": "com.wristband.dict",
   "name": "手环词典",
-  "versionName": "1.0.4",
-  "versionCode": 5,
+  "versionName": "1.0.5",
+  "versionCode": 6,
   "minPlatformVersion": 1000,
   "icon": "/common/images/logo.png",
   "deviceTypeList": ["watch"],
@@ -10,7 +10,7 @@
     { "name": "system.router" },
     { "name": "system.file" },
     { "name": "system.storage" },
-    { "name": "system.fetch" },
+    { "name": "system.interconnect" },
     { "name": "system.prompt" },
     { "name": "system.device" },
     { "name": "system.vibrator" }

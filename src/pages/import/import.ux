@@ -8,16 +8,10 @@
 
     <!-- 内容区 -->
     <scroll class="content" scroll-y="true">
-      <div class="form-area">
-        <!-- 说明 -->
-        <text class="section-label">词典 JSON 地址</text>
-        <text class="hint">输入词典文件的 URL（需为公网可访问的 JSON）</text>
-
-        <!-- URL 输入区：用手环输入法输入 -->
-        <div class="url-input" onclick="toggleKeyboard">
-          <text class="url-text" if="{{url}}">{{url}}</text>
-          <text class="url-placeholder" if="{{!url}}">点击输入 URL</text>
-        </div>
+      <div class="info-area">
+        <!-- 操作说明 -->
+        <text class="section-label">推送导入</text>
+        <text class="hint">在手环连接的 AstroBox 中打开「BandTL 词典导入」插件，选择本地的 JSON 词典文件，将自动推送到本手环。</text>
 
         <!-- 格式说明 -->
         <text class="section-label">词典格式</text>
@@ -30,31 +24,26 @@
   ]
 }</text>
 
-        <!-- 导入按钮 -->
-        <input class="btn-import" type="button" value="{{importing ? '导入中...' : '开始导入'}}" onclick="doImport" />
-      </div>
+        <!-- 状态显示 -->
+        <text class="section-label">推送状态</text>
+        <div class="status-box">
+          <text class="status-name" if="{{phase === 'idle'}}">等待推送…</text>
+          <text class="status-name" if="{{phase === 'receiving'}}">接收中：{{name}}</text>
+          <text class="status-name" if="{{phase === 'done'}}">导入成功</text>
+          <text class="status-name status-err" if="{{phase === 'error'}}">导入失败</text>
 
-      <!-- 输入法键盘 -->
-      <div class="keyboard-area" if="{{showKeyboard}}">
-        <div class="input-preview">
-          <text class="preview-text">{{url}}<span class="cursor">_</span></text>
+          <text class="status-detail" if="{{phase === 'receiving'}}">{{received}} / {{total}} 块</text>
+          <text class="status-detail" if="{{phase === 'done' && wordCount > 0}}">已加载 {{wordCount}} 词</text>
+          <text class="status-detail status-err" if="{{phase === 'error'}}">{{error}}</text>
         </div>
-        <input-method
-          hide="{{!showKeyboard}}"
-          keyboardtype="QWERTY"
-          maxlength="6"
-          vibratemode="short"
-          screentype="rect"
-          @complete="onInputComplete"
-          @delete="onInputDelete"
-          @key-down="onKeyDown">
-        </input-method>
+
+        <!-- 操作按钮 -->
+        <input class="btn-reset" type="button" value="重置状态" if="{{phase === 'done' || phase === 'error'}}" onclick="resetState" />
+        <input class="btn-back" type="button" value="返回使用" if="{{phase === 'done'}}" onclick="goBack" />
       </div>
     </scroll>
   </div>
 </template>
-
-<import name="input-method" src="../../common/components/InputMethod/InputMethod.ux"></import>
 
 <style>
   .page {
@@ -84,7 +73,7 @@
     flex: 1;
     width: 100%;
   }
-  .form-area {
+  .info-area {
     flex-direction: column;
     padding: 16px;
   }
@@ -96,27 +85,9 @@
   }
   .hint {
     font-size: 18px;
-    color: #555555;
+    color: #cccccc;
+    line-height: 26px;
     margin-bottom: 8px;
-  }
-  .url-input {
-    width: 100%;
-    height: 60px;
-    background-color: #1a1a1a;
-    border: 1px solid #09ba07;
-    border-radius: 8px;
-    justify-content: center;
-    padding: 0 12px;
-  }
-  .url-text {
-    font-size: 20px;
-    color: #ffffff;
-    lines: 1;
-    text-overflow: ellipsis;
-  }
-  .url-placeholder {
-    font-size: 20px;
-    color: #555555;
   }
   .format-code {
     font-size: 16px;
@@ -126,35 +97,43 @@
     border-radius: 8px;
     line-height: 22px;
   }
-  .btn-import {
+  .status-box {
     width: 100%;
-    height: 56px;
-    margin-top: 24px;
-    border-radius: 28px;
-    background-color: #09ba07;
-    font-size: 26px;
-    color: #ffffff;
-  }
-  .keyboard-area {
-    width: 100%;
-    height: 320px;
+    background-color: #1a1a1a;
+    border: 1px solid #222222;
+    border-radius: 8px;
+    padding: 16px;
     flex-direction: column;
   }
-  .input-preview {
-    width: 100%;
-    height: 50px;
-    justify-content: center;
-    align-items: center;
-    background-color: #111111;
+  .status-name {
+    font-size: 22px;
+    color: #09ba07;
   }
-  .preview-text {
+  .status-err {
+    color: #ff5555;
+  }
+  .status-detail {
+    font-size: 18px;
+    color: #aaaaaa;
+    margin-top: 8px;
+  }
+  .btn-reset {
+    width: 100%;
+    height: 48px;
+    margin-top: 16px;
+    border-radius: 24px;
+    background-color: #333333;
     font-size: 22px;
     color: #ffffff;
-    lines: 1;
-    text-overflow: ellipsis;
   }
-  .cursor {
-    color: #09ba07;
+  .btn-back {
+    width: 100%;
+    height: 48px;
+    margin-top: 12px;
+    border-radius: 24px;
+    background-color: #09ba07;
+    font-size: 22px;
+    color: #ffffff;
   }
 </style>
 
@@ -163,57 +142,43 @@
 
   export default {
     private: {
-      url: '',
-      showKeyboard: false,
-      importing: false
+      phase: 'idle',
+      name: '',
+      received: 0,
+      total: 0,
+      error: '',
+      wordCount: 0
     },
 
-    toggleKeyboard() {
-      this.showKeyboard = !this.showKeyboard
-    },
-
-    onInputComplete(evt) {
-      const content = evt.detail && evt.detail.content
-      if (content) {
-        this.url = this.url + content
-      }
-    },
-
-    onInputDelete() {
-      if (this.url.length > 0) {
-        this.url = this.url.slice(0, -1)
-      }
-    },
-
-    onKeyDown(evt) {
-      const content = evt.detail && evt.detail.content
-      if (content) {
-        // URL 中符号映射（输入法默认输出字母，符号需手动补）
-        const symbolMap = { ' ': ' ' }
-        this.url = this.url + (symbolMap[content] || content)
-      }
-    },
-
-    doImport() {
-      if (this.importing) return
-      if (!this.url) {
-        this.$app.$def.dict.showToast('请先输入 URL')
-        return
-      }
+    onInit() {
       const that = this
-      this.importing = true
-      this.showKeyboard = false
       const dictMgr = this.$app.$def.dict
-      dictMgr.importFromUrl(this.url, function (res) {
-        that.importing = false
-        if (res.success) {
-          dictMgr.showToast('导入成功：' + (res.dict.name || '') + ' 共' + (res.dict.words.length) + '词')
-          // 返回主页
-          router.back()
-        } else {
-          dictMgr.showToast('导入失败：' + (res.error || ''))
+      // 订阅导入状态变化
+      this._unsub = dictMgr.onImportStatus(function (state) {
+        that.phase = state.phase
+        that.name = state.name
+        that.received = state.received
+        that.total = state.total
+        that.error = state.error
+        that.wordCount = (state.dict && state.dict.words && state.dict.words.length) || 0
+        // 成功时震动提示
+        if (state.phase === 'done') {
+          try {
+            const vibrator = require('@system.vibrator')
+            vibrator.vibrate({ mode: 'short' })
+          } catch (e) {}
         }
       })
+    },
+
+    onDestroy() {
+      if (this._unsub) {
+        this._unsub()
+      }
+    },
+
+    resetState() {
+      this.$app.$def.dict.resetImportState()
     },
 
     goBack() {

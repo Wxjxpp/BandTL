@@ -2,9 +2,26 @@
   // 应用级别的配置，供所有页面公用
   // manifest 配置信息会被编译器注入，请勿删除 manifest 标识
   import dict from './common/scripts/dict'
+  import interconnect from '@system.interconnect'
 
   export default {
     // 暴露词典管理模块给所有页面，页面内通过 this.$app.$def.dict 访问
-    dict: dict
+    dict: dict,
+
+    onCreate() {
+      // 注册 interconnect 接收：把手机端 AstroBox 插件推送的词典分块交给 dict 模块处理
+      try {
+        const connect = interconnect.instance()
+        connect.onmessage = function (data) {
+          // data.data 为字符串消息内容（来自插件 send-qaic-message）
+          const msg = data && data.data
+          if (typeof msg === 'string' && msg.length > 0) {
+            dict.handleInterconnectMessage(msg)
+          }
+        }
+      } catch (e) {
+        // interconnect 不可用时静默忽略，不影响应用其它功能
+      }
+    }
   }
 </script>
