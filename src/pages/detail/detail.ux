@@ -2,20 +2,19 @@
   <div class="page">
     <!-- 顶部返回栏 -->
     <div class="header">
-      <text class="back-btn" onclick="goBack">‹ 返回</text>
+      <div class="back-btn" onclick="goBack">
+        <text class="back-arrow">&#60;</text>
+      </div>
       <text class="title">词条详情</text>
+      <div class="back-btn placeholder"></div>
     </div>
 
     <!-- 内容滚动区 -->
     <scroll class="content" scroll-y="true">
-      <div class="word-card">
-        <!-- 单词 -->
+      <div class="detail-card">
         <text class="word">{{word}}</text>
-        <!-- 音标 -->
-        <text class="phonetic" if="{{phonetic}}">/{{phonetic}}/</text>
-        <!-- 分隔线 -->
+        <text class="phonetic" if="{{phonetic}}">{{phonetic}}</text>
         <div class="divider"></div>
-        <!-- 释义 -->
         <text class="section-label">释义</text>
         <text class="translation">{{translation}}</text>
       </div>
@@ -32,54 +31,76 @@
   }
   .header {
     width: 100%;
-    height: 56px;
+    height: 72px;
     flex-direction: row;
+    justify-content: space-between;
     align-items: center;
-    background-color: #111111;
-    padding: 0 16px;
+    padding-left: 16px;
+    padding-right: 16px;
   }
   .back-btn {
-    font-size: 24px;
-    color: #09ba07;
-    margin-right: 16px;
+    width: 64px;
+    height: 64px;
+    border-radius: 32px;
+    background-color: #1C1C1E;
+    justify-content: center;
+    align-items: center;
+  }
+  .back-btn.placeholder {
+    background-color: transparent;
+  }
+  .back-arrow {
+    font-size: 36px;
+    color: #FFFFFF;
+    font-weight: bold;
   }
   .title {
-    font-size: 24px;
-    color: #ffffff;
+    font-size: 36px;
+    color: #FFFFFF;
+    font-weight: bold;
   }
   .content {
     flex: 1;
     width: 100%;
   }
-  .word-card {
+  .detail-card {
+    margin-left: 16px;
+    margin-right: 16px;
+    margin-top: 12px;
+    border-radius: 24px;
+    background-color: #1C1C1E;
     flex-direction: column;
-    padding: 24px 20px;
+    padding-top: 24px;
+    padding-right: 24px;
+    padding-bottom: 24px;
+    padding-left: 24px;
   }
   .word {
-    font-size: 42px;
-    color: #ffffff;
+    font-size: 48px;
+    color: #FFFFFF;
     font-weight: bold;
   }
   .phonetic {
-    font-size: 24px;
-    color: #09ba07;
-    margin-top: 10px;
+    font-size: 26px;
+    color: #8E8E93;
+    margin-top: 8px;
   }
   .divider {
     width: 100%;
     height: 1px;
-    background-color: #222222;
-    margin: 20px 0;
+    background-color: #38383A;
+    margin-top: 20px;
+    margin-bottom: 20px;
   }
   .section-label {
-    font-size: 20px;
-    color: #888888;
+    font-size: 22px;
+    color: #8E8E93;
     margin-bottom: 10px;
   }
   .translation {
     font-size: 28px;
-    color: #cccccc;
-    line-height: 40px;
+    color: #EBEBF5;
+    line-height: 42px;
   }
 </style>
 
@@ -87,7 +108,6 @@
   import router from '@system.router'
 
   export default {
-    // public 接收来自 index 页 router.push 的 params
     public: {
       word: '',
       phonetic: '',
