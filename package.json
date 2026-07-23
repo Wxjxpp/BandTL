@@ -1,12 +1,15 @@
 {
   "name": "wristband-dict",
-  "version": "1.0.0",
+  "version": "1.0.4",
   "description": "小米手环9 Pro 词典快应用 - 支持外界导入词典、手环输入法本地搜索",
   "scripts": {
-    "build": "hap build",
-    "debug": "hap debug",
-    "release": "hap release"
+    "start": "aiot start --watch --enable-custom-component",
+    "build": "aiot build --enable-custom-component",
+    "release": "aiot release --enable-custom-component --enable-jsc",
+    "lint": "eslint --format codeframe --fix --ext .ux,.js src/"
   },
-  "dependencies": {},
-  "devDependencies": {}
+  "devDependencies": {
+    "@aiot-toolkit/jsc": "^1.0.8",
+    "aiot-toolkit": "^2.0.4"
+  }
 }

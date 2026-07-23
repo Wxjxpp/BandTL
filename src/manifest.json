@@ -1,11 +1,11 @@
 {
   "package": "com.wristband.dict",
   "name": "手环词典",
+  "versionName": "1.0.4",
+  "versionCode": 5,
+  "minPlatformVersion": 1000,
   "icon": "/common/images/logo.png",
-  "versionName": "1.0.3",
-  "versionCode": 4,
-  "minAPILevel": 1,
-  "deviceTypeList": ["band", "watch"],
+  "deviceTypeList": ["watch"],
   "features": [
     { "name": "system.router" },
     { "name": "system.file" },
@@ -17,7 +17,7 @@
   ],
   "config": {
     "logLevel": "log",
-    "designWidth": 336
+    "designWidth": "device-width"
   },
   "router": {
     "entry": "pages/index",
