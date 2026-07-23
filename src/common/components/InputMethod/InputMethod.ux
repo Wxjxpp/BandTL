@@ -593,7 +593,6 @@ export default {
     });
   },
   onSelect(num) {
-    this.$emit("keyDown", { content: num });
     if (this.keyboardtype === "T9" && this.screentype !== "pill-shaped") {
       this.onBtnClick(num);
       return;

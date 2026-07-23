@@ -143,7 +143,7 @@ function handleInterconnectMessage(msgStr) {
  */
 function loadBuiltinDict(callback) {
   file.readText({
-    uri: '/Common/dict.json',
+    uri: '/common/dict.json',
     success: function (data) {
       try {
         const dict = JSON.parse(data.text)
