@@ -1,4 +1,5 @@
 use astrobox_ng_wit::astrobox::psys_host::{self, dialog, device, interconnect, ui_v3};
+use astrobox_ng_wit as abx;
 use std::sync::{Mutex, OnceLock};
 
 /// 按钮 event id
@@ -45,16 +46,16 @@ fn set_busy(busy: bool, msg: &str) {
     }
 }
 
-/// UI 事件分发（由 on_ui_event_v3 的异步任务调用）。
-/// 必须在事件 future 内 await 完成，否则文件选择器无法拉起。
-pub async fn ui_event_processor(evtype: ui_v3::Event, event_id: &str) {
+/// UI 事件分发（由 on_ui_event_v3 同步调用）。
+/// 使用 block_on 调用异步 host 函数（如 pick_file），
+/// 避免 spawn+await 嵌套导致 host 无法正确轮询。
+pub fn ui_event_processor(evtype: ui_v3::Event, event_id: &str) {
     if !matches!(evtype, ui_v3::Event::Click) {
         return;
     }
     if event_id != EVT_PICK_FILE {
         return;
     }
-    // 防止重复点击
     let busy = ui_state()
         .lock()
         .unwrap_or_else(|poisoned| poisoned.into_inner())
@@ -62,7 +63,7 @@ pub async fn ui_event_processor(evtype: ui_v3::Event, event_id: &str) {
     if busy {
         return;
     }
-    do_import().await;
+    abx::block_on(do_import());
 }
 
 /// 主导入流程：选文件 → 校验 → 获取设备 → 分块 → interconnect 推送到手环。

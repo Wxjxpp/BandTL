@@ -25,10 +25,10 @@ impl event_v3::Guest for MyPlugin {
         _event_payload: String,
     ) -> FutureReader<String> {
         let (writer, reader) = astrobox_ng_wit::wit_future::new::<String>(|| "".to_string());
-        // 关键：导入流程（含文件选择器）必须在事件 future 内 await 完成，
-        // 否则 future 提前 resolve 会导致宿主停止轮询，文件选择器无法拉起。
+        // 用 block_on 在同步上下文中执行异步导入流程。
+        // spawn+await 嵌套太深会导致 host 无法正确轮询 pick_file 的 future。
+        ui::ui_event_processor(event, &event_id);
         astrobox_ng_wit::spawn(async move {
-            ui::ui_event_processor(event, &event_id).await;
             let _ = writer.write("".to_string()).await;
         });
         reader
@@ -55,7 +55,7 @@ impl event_v3::Guest for MyPlugin {
 impl lifecycle::Guest for MyPlugin {
     fn on_load() -> () {
         logger::init();
-        tracing::info!("BandTL 词典导入插件已加载 (v1.0.6)");
+        tracing::info!("BandTL 词典导入插件已加载 (v1.0.7)");
     }
 }
 

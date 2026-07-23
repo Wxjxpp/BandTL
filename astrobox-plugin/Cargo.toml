@@ -1,6 +1,6 @@
 [package]
 name = "bandtl-dict-importer"
-version = "1.0.6"
+version = "1.0.7"
 edition = "2024"
 description = "BandTL 手环词典导入插件 - 选择本地 JSON 词典并推送到手环"
 
