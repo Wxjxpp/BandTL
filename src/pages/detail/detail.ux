@@ -1,14 +1,22 @@
 <template>
   <div class="page">
-    <!-- 顶部返回栏 -->
+    <!-- 状态栏 -->
+    <div class="status-bar">
+      <text class="status-time">09:28</text>
+    </div>
+
+    <!-- 顶部 header：返回 + 标题 + 三点菜单 -->
     <div class="header">
-      <text class="back-btn" onclick="goBack">‹ 返回</text>
+      <div class="back-btn" onclick="goBack">
+        <text class="back-arrow">&#60;</text>
+      </div>
       <text class="title">词条详情</text>
+      <div class="back-btn placeholder"></div>
     </div>
 
     <!-- 内容滚动区 -->
     <scroll class="content" scroll-y="true">
-      <div class="word-card">
+      <div class="detail-card">
         <!-- 单词 -->
         <text class="word">{{word}}</text>
         <!-- 音标 -->
@@ -30,56 +38,101 @@
     width: 100%;
     height: 100%;
   }
+
+  /* 状态栏 */
+  .status-bar {
+    width: 100%;
+    height: 50px;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+  }
+  .status-time {
+    font-size: 26px;
+    color: #FFFFFF;
+    font-weight: bold;
+  }
+
+  /* 顶部 header */
   .header {
     width: 100%;
-    height: 56px;
+    height: 120px;
     flex-direction: row;
+    justify-content: space-between;
     align-items: center;
-    background-color: #111111;
-    padding: 0 16px;
+    padding-left: 16px;
+    padding-right: 16px;
   }
   .back-btn {
-    font-size: 24px;
-    color: #09ba07;
-    margin-right: 16px;
+    width: 80px;
+    height: 80px;
+    border-radius: 40px;
+    background-color: rgba(255, 255, 255, 0.08);
+    border: 2px solid rgba(255, 255, 255, 0.12);
+    justify-content: center;
+    align-items: center;
+  }
+  .back-btn.placeholder {
+    background-color: transparent;
+    border: 0;
+  }
+  .back-arrow {
+    font-size: 44px;
+    color: #FFFFFF;
+    font-weight: bold;
   }
   .title {
-    font-size: 24px;
-    color: #ffffff;
+    font-size: 48px;
+    color: #FFFFFF;
+    font-weight: bold;
   }
+
+  /* 内容滚动区 */
   .content {
     flex: 1;
     width: 100%;
   }
-  .word-card {
+
+  /* 详情卡片 */
+  .detail-card {
+    margin-left: 16px;
+    margin-right: 16px;
+    margin-top: 16px;
+    border-radius: 48px;
+    background-color: rgba(255, 255, 255, 0.08);
+    border: 2px solid rgba(255, 255, 255, 0.12);
     flex-direction: column;
-    padding: 24px 20px;
+    padding-top: 40px;
+    padding-right: 32px;
+    padding-bottom: 40px;
+    padding-left: 32px;
   }
   .word {
-    font-size: 42px;
-    color: #ffffff;
+    font-size: 64px;
+    color: #FFFFFF;
     font-weight: bold;
   }
   .phonetic {
-    font-size: 24px;
-    color: #09ba07;
-    margin-top: 10px;
+    font-size: 32px;
+    color: #8E8E93;
+    margin-top: 16px;
   }
   .divider {
     width: 100%;
-    height: 1px;
-    background-color: #222222;
-    margin: 20px 0;
+    height: 2px;
+    background-color: rgba(255, 255, 255, 0.12);
+    margin-top: 32px;
+    margin-bottom: 32px;
   }
   .section-label {
-    font-size: 20px;
-    color: #888888;
-    margin-bottom: 10px;
+    font-size: 30px;
+    color: #8E8E93;
+    margin-bottom: 16px;
   }
   .translation {
-    font-size: 28px;
-    color: #cccccc;
-    line-height: 40px;
+    font-size: 40px;
+    color: #EBEBF5;
+    line-height: 60px;
   }
 </style>
 

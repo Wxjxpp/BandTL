@@ -1,47 +1,52 @@
 <template>
   <div class="page">
-    <!-- 顶部返回栏 -->
+    <!-- 状态栏 -->
+    <div class="status-bar">
+      <text class="status-time">09:28</text>
+    </div>
+
+    <!-- 顶部 header：返回 + 标题 + 三点菜单 -->
     <div class="header">
-      <text class="back-btn" onclick="goBack">‹ 返回</text>
-      <text class="title">导入词典</text>
+      <div class="back-btn" onclick="goBack">
+        <text class="back-arrow">&#60;</text>
+      </div>
+      <text class="title">同步内容</text>
+      <div class="back-btn placeholder"></div>
     </div>
 
     <!-- 内容区 -->
-    <scroll class="content" scroll-y="true">
-      <div class="info-area">
-        <!-- 操作说明 -->
-        <text class="section-label">推送导入</text>
-        <text class="hint">在手环连接的 AstroBox 中打开「BandTL 词典导入」插件，选择本地的 JSON 词典文件，将自动推送到本手环。</text>
-
-        <!-- 格式说明 -->
-        <text class="section-label">词典格式</text>
-        <text class="format-code">{
-  "name": "词典名",
-  "words": [
-    {"id":1,"word":"apple",
-     "phonetic":"ˈæpl",
-     "translation":"n. 苹果"}
-  ]
-}</text>
-
-        <!-- 状态显示 -->
-        <text class="section-label">推送状态</text>
-        <div class="status-box">
-          <text class="status-name" if="{{phase === 'idle'}}">等待推送…</text>
-          <text class="status-name" if="{{phase === 'receiving'}}">接收中：{{name}}</text>
-          <text class="status-name" if="{{phase === 'done'}}">导入成功</text>
-          <text class="status-name status-err" if="{{phase === 'error'}}">导入失败</text>
-
-          <text class="status-detail" if="{{phase === 'receiving'}}">{{received}} / {{total}} 块</text>
-          <text class="status-detail" if="{{phase === 'done' && wordCount > 0}}">已加载 {{wordCount}} 词</text>
-          <text class="status-detail status-err" if="{{phase === 'error'}}">{{error}}</text>
+    <div class="content">
+      <!-- 状态图标方块（按设计稿：48px 圆角的渐变大图标） -->
+      <div class="icon-area">
+        <div class="icon-box {{phase}}">
+          <text class="icon-text" if="{{phase === 'idle'}}">连接</text>
+          <text class="icon-text" if="{{phase === 'receiving'}}">同步</text>
+          <text class="icon-text" if="{{phase === 'done'}}">完成</text>
+          <text class="icon-text" if="{{phase === 'error'}}">失败</text>
         </div>
-
-        <!-- 操作按钮 -->
-        <input class="btn-reset" type="button" value="重置状态" if="{{phase === 'done' || phase === 'error'}}" onclick="resetState" />
-        <input class="btn-back" type="button" value="返回使用" if="{{phase === 'done'}}" onclick="goBack" />
       </div>
-    </scroll>
+
+      <!-- 状态文字 -->
+      <div class="status-text-area">
+        <text class="status-title" if="{{phase === 'idle'}}">等待选择</text>
+        <text class="status-title" if="{{phase === 'receiving'}}">正在同步</text>
+        <text class="status-title" if="{{phase === 'done'}}">同步成功</text>
+        <text class="status-title" if="{{phase === 'error'}}">同步失败</text>
+
+        <text class="status-desc" if="{{phase === 'idle' && !error}}">连接成功，请在连接的 AstroBox 中打开 BandTL 词典导入插件，选择 JSON 词典文件并点击推送</text>
+        <text class="status-desc" if="{{phase === 'receiving'}}">{{name}}</text>
+        <text class="status-desc" if="{{phase === 'done'}}">已加载 {{wordCount}} 个词条</text>
+        <text class="status-desc error" if="{{phase === 'error'}}">{{error}}</text>
+      </div>
+
+      <!-- 进度胶囊（按设计稿：左"内容"右百分数） -->
+      <div class="progress-area" if="{{phase !== 'idle'}}">
+        <div class="progress-pill">
+          <text class="progress-label">内容</text>
+          <text class="progress-percent {{phase}}">{{progressPercent}}%</text>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -52,88 +57,152 @@
     width: 100%;
     height: 100%;
   }
+
+  /* 状态栏 */
+  .status-bar {
+    width: 100%;
+    height: 50px;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+  }
+  .status-time {
+    font-size: 26px;
+    color: #FFFFFF;
+    font-weight: bold;
+  }
+
+  /* 顶部 header */
   .header {
     width: 100%;
-    height: 56px;
+    height: 120px;
     flex-direction: row;
+    justify-content: space-between;
     align-items: center;
-    background-color: #111111;
-    padding: 0 16px;
+    padding-left: 16px;
+    padding-right: 16px;
   }
   .back-btn {
-    font-size: 24px;
-    color: #09ba07;
-    margin-right: 16px;
+    width: 80px;
+    height: 80px;
+    border-radius: 40px;
+    background-color: rgba(255, 255, 255, 0.08);
+    border: 2px solid rgba(255, 255, 255, 0.12);
+    justify-content: center;
+    align-items: center;
+  }
+  .back-btn.placeholder {
+    background-color: transparent;
+    border: 0;
+  }
+  .back-arrow {
+    font-size: 44px;
+    color: #FFFFFF;
+    font-weight: bold;
   }
   .title {
-    font-size: 24px;
-    color: #ffffff;
+    font-size: 48px;
+    color: #FFFFFF;
+    font-weight: bold;
   }
+
+  /* 内容区 */
   .content {
     flex: 1;
     width: 100%;
-  }
-  .info-area {
     flex-direction: column;
-    padding: 16px;
+    align-items: center;
+    padding-top: 24px;
+    padding-left: 24px;
+    padding-right: 24px;
+    padding-bottom: 24px;
   }
-  .section-label {
-    font-size: 22px;
-    color: #888888;
-    margin-top: 16px;
-    margin-bottom: 8px;
+
+  /* 图标方块（按设计稿：渐变背景 + 48px 圆角） */
+  .icon-area {
+    margin-top: 40px;
+    margin-bottom: 40px;
   }
-  .hint {
-    font-size: 18px;
-    color: #cccccc;
-    line-height: 26px;
-    margin-bottom: 8px;
+  .icon-box {
+    width: 200px;
+    height: 200px;
+    border-radius: 48px;
+    justify-content: center;
+    align-items: center;
   }
-  .format-code {
-    font-size: 16px;
-    color: #09ba07;
-    background-color: #111111;
-    padding: 12px;
-    border-radius: 8px;
-    line-height: 22px;
+  .icon-box.idle {
+    background-color: #5E5CE6;
   }
-  .status-box {
+  .icon-box.receiving {
+    background-color: #0A84FF;
+  }
+  .icon-box.done {
+    background-color: #30D158;
+  }
+  .icon-box.error {
+    background-color: #FF453A;
+  }
+  .icon-text {
+    font-size: 36px;
+    color: #FFFFFF;
+    font-weight: bold;
+  }
+
+  /* 状态文字 */
+  .status-text-area {
     width: 100%;
-    background-color: #1a1a1a;
-    border: 1px solid #222222;
-    border-radius: 8px;
-    padding: 16px;
     flex-direction: column;
+    align-items: center;
+    margin-bottom: 40px;
   }
-  .status-name {
-    font-size: 22px;
-    color: #09ba07;
+  .status-title {
+    font-size: 48px;
+    color: #FFFFFF;
+    font-weight: bold;
+    text-align: center;
   }
-  .status-err {
-    color: #ff5555;
-  }
-  .status-detail {
-    font-size: 18px;
-    color: #aaaaaa;
-    margin-top: 8px;
-  }
-  .btn-reset {
-    width: 100%;
-    height: 48px;
+  .status-desc {
+    font-size: 32px;
+    color: #8E8E93;
+    text-align: center;
+    line-height: 48px;
     margin-top: 16px;
-    border-radius: 24px;
-    background-color: #333333;
-    font-size: 22px;
-    color: #ffffff;
   }
-  .btn-back {
+  .status-desc.error {
+    color: #FF453A;
+  }
+
+  /* 进度胶囊（按设计稿） */
+  .progress-area {
     width: 100%;
-    height: 48px;
-    margin-top: 12px;
-    border-radius: 24px;
-    background-color: #09ba07;
-    font-size: 22px;
-    color: #ffffff;
+  }
+  .progress-pill {
+    width: 100%;
+    height: 96px;
+    border-radius: 48px;
+    background-color: rgba(255, 255, 255, 0.08);
+    border: 2px solid rgba(255, 255, 255, 0.12);
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding-left: 40px;
+    padding-right: 40px;
+  }
+  .progress-label {
+    font-size: 40px;
+    color: #FFFFFF;
+    font-weight: bold;
+  }
+  .progress-percent {
+    font-size: 40px;
+    color: #8E8E93;
+    font-weight: bold;
+  }
+  .progress-percent.done {
+    color: #30D158;
+  }
+  .progress-percent.error {
+    color: #FF453A;
   }
 </style>
 
@@ -150,10 +219,18 @@
       wordCount: 0
     },
 
+    computed: {
+      progressPercent: function () {
+        if (this.total <= 0) return 0
+        if (this.phase === 'done') return 100
+        const p = Math.floor((this.received / this.total) * 100)
+        return p > 100 ? 100 : p
+      }
+    },
+
     onInit() {
       const that = this
       const dictMgr = this.$app.$def.dict
-      // 订阅导入状态变化
       this._unsub = dictMgr.onImportStatus(function (state) {
         that.phase = state.phase
         that.name = state.name
@@ -161,7 +238,6 @@
         that.total = state.total
         that.error = state.error
         that.wordCount = (state.dict && state.dict.words && state.dict.words.length) || 0
-        // 成功时震动提示
         if (state.phase === 'done') {
           try {
             const vibrator = require('@system.vibrator')
@@ -175,10 +251,6 @@
       if (this._unsub) {
         this._unsub()
       }
-    },
-
-    resetState() {
-      this.$app.$def.dict.resetImportState()
     },
 
     goBack() {

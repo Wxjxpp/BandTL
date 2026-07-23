@@ -2,47 +2,57 @@
 
 <template>
   <div class="page">
-    <!-- 顶部：标题栏 + 词典信息 + 功能入口 -->
-    <div class="header">
-      <text class="title">词典</text>
-      <text class="dict-info" onclick="goManage">{{dictName}} · {{wordCount}}词</text>
+    <!-- 状态栏 -->
+    <div class="status-bar">
+      <text class="status-time">09:28</text>
     </div>
 
-    <!-- 搜索框显示区：点击唤起键盘 -->
-    <div class="search-bar" onclick="toggleKeyboard">
-      <text class="search-icon">🔍</text>
+    <!-- 顶部 header：返回 + 标题 + 三点菜单 -->
+    <div class="header">
+      <div class="back-btn placeholder"></div>
+      <text class="title">词典</text>
+      <!-- 3点菜单按钮，点击跳转设置页 -->
+      <div class="menu-btn" onclick="goManage">
+        <text class="menu-dots">⋮</text>
+      </div>
+    </div>
+
+    <!-- 搜索框卡片：点击唤起键盘 -->
+    <div class="search-card" onclick="toggleKeyboard">
       <text class="search-text" if="{{query}}">{{query}}</text>
       <text class="search-placeholder" if="{{!query}}">点击输入要查询的词</text>
-      <text class="clear-btn" if="{{query}}" onclick="clearQuery">✕</text>
+      <text class="clear-btn" if="{{query}}" onclick="clearQuery">清除</text>
     </div>
 
     <!-- 搜索结果列表 -->
     <div class="result-area" if="{{!showKeyboard}}">
       <list class="result-list" id="resultList">
         <list-item class="result-item" for="{{results}}" tid="id" type="word" onclick="onWordClick">
-          <div class="word-row">
-            <text class="word">{{$item.word}}</text>
-            <text class="phonetic" if="{{$item.phonetic}}">/{{$item.phonetic}}/</text>
+          <div class="word-card">
+            <div class="word-row">
+              <text class="word">{{$item.word}}</text>
+              <text class="phonetic" if="{{$item.phonetic}}">/{{$item.phonetic}}/</text>
+            </div>
+            <text class="translation">{{$item.translation}}</text>
           </div>
-          <text class="translation">{{$item.translation}}</text>
         </list-item>
         <!-- 无结果提示 -->
         <list-item class="empty-item" type="empty" if="{{query && results.length === 0}}">
-          <text class="empty-text">未找到"{{query}}"的释义</text>
-          <text class="empty-hint">试试其他拼写或中文释义</text>
+          <text class="empty-title">未找到结果</text>
+          <text class="empty-desc">试试其他拼写或中文释义</text>
         </list-item>
         <!-- 初始状态提示 -->
         <list-item class="empty-item" type="init" if="{{!query}}">
-          <text class="empty-text">点击搜索框开始查询</text>
-          <text class="empty-hint">支持英文单词和中文释义搜索</text>
+          <text class="empty-title">开始查询</text>
+          <text class="empty-desc">支持英文单词和中文释义搜索</text>
         </list-item>
       </list>
     </div>
 
     <!-- 输入法键盘区（显隐切换） -->
     <div class="keyboard-area" if="{{showKeyboard}}">
-      <div class="input-preview">
-        <text class="preview-text">{{query}}<span class="cursor">_</span></text>
+      <div class="input-bar">
+        <text class="preview-text">{{query}}<text class="cursor">|</text></text>
       </div>
       <input-method
         hide="{{!showKeyboard}}"
@@ -67,58 +77,84 @@
     height: 100%;
   }
 
-  /* 顶部标题栏 */
+  /* 状态栏 */
+  .status-bar {
+    width: 100%;
+    height: 50px;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+  }
+  .status-time {
+    font-size: 26px;
+    color: #FFFFFF;
+    font-weight: bold;
+  }
+
+  /* 顶部 header */
   .header {
     width: 100%;
-    height: 56px;
+    height: 120px;
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
-    padding: 0 16px;
-    background-color: #111111;
+    padding-left: 16px;
+    padding-right: 16px;
   }
-  .title {
-    font-size: 28px;
-    color: #ffffff;
+  .back-btn,
+  .menu-btn {
+    width: 80px;
+    height: 80px;
+    border-radius: 40px;
+    background-color: rgba(255, 255, 255, 0.08);
+    border: 2px solid rgba(255, 255, 255, 0.12);
+    justify-content: center;
+    align-items: center;
+  }
+  .back-btn.placeholder {
+    background-color: transparent;
+    border: 0;
+  }
+  .menu-dots {
+    font-size: 44px;
+    color: #FFFFFF;
     font-weight: bold;
   }
-  .dict-info {
-    font-size: 18px;
-    color: #09ba07;
-    padding: 4px 10px;
-    border: 1px solid #09ba07;
-    border-radius: 10px;
+  .title {
+    font-size: 48px;
+    color: #FFFFFF;
+    font-weight: bold;
   }
 
-  /* 搜索框 */
-  .search-bar {
-    width: 100%;
-    height: 60px;
+  /* 搜索卡片 */
+  .search-card {
+    margin-left: 16px;
+    margin-right: 16px;
+    margin-top: 8px;
+    margin-bottom: 16px;
+    height: 96px;
+    border-radius: 48px;
+    background-color: rgba(255, 255, 255, 0.08);
+    border: 2px solid rgba(255, 255, 255, 0.12);
     flex-direction: row;
     align-items: center;
-    padding: 0 16px;
-    background-color: #1a1a1a;
-    border-bottom: 1px solid #222222;
-  }
-  .search-icon {
-    font-size: 22px;
-    color: #888888;
-    margin-right: 10px;
+    padding-left: 32px;
+    padding-right: 32px;
   }
   .search-text {
     flex: 1;
-    font-size: 24px;
-    color: #ffffff;
+    font-size: 36px;
+    color: #FFFFFF;
   }
   .search-placeholder {
     flex: 1;
-    font-size: 22px;
-    color: #555555;
+    font-size: 32px;
+    color: #636366;
   }
   .clear-btn {
-    font-size: 22px;
-    color: #888888;
-    padding: 6px;
+    font-size: 30px;
+    color: #0A84FF;
+    padding-left: 16px;
   }
 
   /* 结果区 */
@@ -132,51 +168,62 @@
   }
   .result-item {
     width: 100%;
-    height: 86px;
+    padding-left: 16px;
+    padding-right: 16px;
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
+  .word-card {
+    width: 100%;
+    border-radius: 24px;
+    background-color: rgba(255, 255, 255, 0.08);
+    border: 2px solid rgba(255, 255, 255, 0.12);
     flex-direction: column;
-    justify-content: center;
-    padding: 0 16px;
-    border-bottom: 1px solid #1a1a1a;
+    padding-top: 24px;
+    padding-right: 28px;
+    padding-bottom: 24px;
+    padding-left: 28px;
   }
   .word-row {
     flex-direction: row;
     align-items: flex-end;
   }
   .word {
-    font-size: 26px;
-    color: #ffffff;
+    font-size: 38px;
+    color: #FFFFFF;
     font-weight: bold;
-    margin-right: 10px;
+    margin-right: 16px;
   }
   .phonetic {
-    font-size: 18px;
-    color: #888888;
+    font-size: 28px;
+    color: #8E8E93;
+    margin-bottom: 4px;
   }
   .translation {
-    font-size: 22px;
-    color: #cccccc;
-    lines: 1;
+    font-size: 32px;
+    color: #EBEBF5;
+    lines: 2;
     text-overflow: ellipsis;
-    margin-top: 4px;
+    margin-top: 12px;
   }
 
   /* 空状态 */
   .empty-item {
     width: 100%;
-    height: 200px;
+    height: 300px;
     flex-direction: column;
     justify-content: center;
     align-items: center;
   }
-  .empty-text {
-    font-size: 24px;
-    color: #888888;
+  .empty-title {
+    font-size: 40px;
+    color: #8E8E93;
     text-align: center;
   }
-  .empty-hint {
-    font-size: 18px;
-    color: #555555;
-    margin-top: 10px;
+  .empty-desc {
+    font-size: 30px;
+    color: #636366;
+    margin-top: 16px;
     text-align: center;
   }
 
@@ -186,20 +233,24 @@
     width: 100%;
     flex-direction: column;
   }
-  .input-preview {
+  .input-bar {
     width: 100%;
-    height: 56px;
+    height: 80px;
     justify-content: center;
     align-items: center;
-    background-color: #111111;
-    border-bottom: 1px solid #222222;
+    background-color: rgba(255, 255, 255, 0.08);
+    border: 2px solid rgba(255, 255, 255, 0.12);
+    margin-left: 16px;
+    margin-right: 16px;
+    margin-top: 8px;
+    border-radius: 40px;
   }
   .preview-text {
-    font-size: 26px;
-    color: #ffffff;
+    font-size: 36px;
+    color: #FFFFFF;
   }
   .cursor {
-    color: #09ba07;
+    color: #0A84FF;
   }
 </style>
 
@@ -266,7 +317,7 @@
     onKeyboardVisibility(evt) {
       const visible = evt.detail && evt.detail.visible
       if (visible === false) {
-        // 键盘隐藏时不强制改 showKeyboard，保留预览
+        // 键盘隐藏时不强制改 showKeyboard
       }
     },
 
@@ -288,7 +339,6 @@
 
     // 点击词条跳转详情
     onWordClick(evt) {
-      // 事件对象中获取被点击的 list-item 绑定的数据
       const item = evt && evt.detail ? evt.detail : null
       router.push({
         uri: '/detail',
