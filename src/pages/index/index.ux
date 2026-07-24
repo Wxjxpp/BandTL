@@ -2,256 +2,181 @@
 
 <template>
   <div class="page">
-    <!-- 状态栏 -->
-    <div class="status-bar">
-      <text class="status-time">09:28</text>
-    </div>
+    <image class="header-bg" src="/common/hd.png" />
+    <text class="hd-time">{{time}}</text>
+    <text class="hd-title">词典</text>
+    <image class="menu-btn" src="/common/more.png" @click="goManage" />
 
-    <!-- 顶部 header：返回 + 标题 + 三点菜单 -->
-    <div class="header">
-      <div class="back-btn placeholder"></div>
-      <text class="title">词典</text>
-      <!-- 3点菜单按钮，点击跳转设置页 -->
-      <div class="menu-btn" onclick="goManage">
-        <text class="menu-dots">⋮</text>
+    <div class="search-area" if="{{!showKeyboard}}">
+      <div class="search-box" @click="toggleKeyboard">
+        <text class="search-text" if="{{query}}">{{query}}</text>
+        <text class="search-placeholder" if="{{!query}}">点击输入查询</text>
       </div>
     </div>
 
-    <!-- 搜索框卡片：点击唤起键盘 -->
-    <div class="search-card" onclick="toggleKeyboard">
-      <text class="search-text" if="{{query}}">{{query}}</text>
-      <text class="search-placeholder" if="{{!query}}">点击输入要查询的词</text>
-      <text class="clear-btn" if="{{query}}" onclick="clearQuery">清除</text>
-    </div>
-
-    <!-- 搜索结果列表 -->
-    <div class="result-area" if="{{!showKeyboard}}">
-      <list class="result-list" id="resultList">
-        <list-item class="result-item" for="{{results}}" tid="id" type="word" onclick="onWordClick">
-          <div class="word-card">
-            <div class="word-row">
-              <text class="word">{{$item.word}}</text>
-              <text class="phonetic" if="{{$item.phonetic}}">/{{$item.phonetic}}/</text>
-            </div>
-            <text class="translation">{{$item.translation}}</text>
+    <list class="result-list" if="{{!showKeyboard}}">
+      <list-item class="result-item" for="{{results}}" tid="id" type="word" onclick="onWordClick">
+        <div class="card">
+          <div class="card-left">
+            <text class="card-label">{{$item.word}}</text>
+            <text class="card-sub" if="{{$item.translation}}">{{$item.translation}}</text>
           </div>
-        </list-item>
-        <!-- 无结果提示 -->
-        <list-item class="empty-item" type="empty" if="{{query && results.length === 0}}">
-          <text class="empty-title">未找到结果</text>
-          <text class="empty-desc">试试其他拼写或中文释义</text>
-        </list-item>
-        <!-- 初始状态提示 -->
-        <list-item class="empty-item" type="init" if="{{!query}}">
-          <text class="empty-title">开始查询</text>
-          <text class="empty-desc">支持英文单词和中文释义搜索</text>
-        </list-item>
-      </list>
-    </div>
+        </div>
+      </list-item>
+      <list-item class="empty-item" type="empty" if="{{query && results.length === 0}}">
+        <text class="empty-text">未找到结果</text>
+      </list-item>
+      <list-item class="empty-item" type="init" if="{{!query}}">
+        <text class="empty-text">输入单词开始查询</text>
+      </list-item>
+    </list>
 
-    <!-- 输入法键盘区（显隐切换） -->
-    <div class="keyboard-area" if="{{showKeyboard}}">
-      <div class="input-bar">
-        <text class="preview-text">{{query}}<text class="cursor">|</text></text>
-      </div>
-      <input-method
-        hide="{{!showKeyboard}}"
-        keyboardtype="QWERTY"
-        maxlength="6"
-        vibratemode="short"
-        screentype="rect"
-        @complete="onInputComplete"
-        @delete="onInputDelete"
-        @key-down="onKeyDown"
-        @visibility-change="onKeyboardVisibility">
-      </input-method>
-    </div>
+    <input-method
+      hide="{{!showKeyboard}}"
+      keyboardtype="QWERTY"
+      maxlength="20"
+      vibratemode="short"
+      screentype="rect"
+      @complete="onInputComplete"
+      @delete="onInputDelete">
+    </input-method>
   </div>
 </template>
 
 <style>
-  .page {
-    flex-direction: column;
-    background-color: #000000;
-    width: 100%;
-    height: 100%;
-  }
+.page {
+  width: 336px;
+  height: 480px;
+  background-color: #000000;
+  position: relative;
+  flex-direction: column;
+}
 
-  /* 状态栏 */
-  .status-bar {
-    width: 100%;
-    height: 50px;
-    flex-direction: row;
-    justify-content: center;
-    align-items: center;
-  }
-  .status-time {
-    font-size: 26px;
-    color: #FFFFFF;
-    font-weight: bold;
-  }
+.header-bg {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 336px;
+  height: 102px;
+  z-index: 1;
+}
+.hd-time {
+  position: absolute;
+  left: 78px;
+  top: 7px;
+  width: 180px;
+  height: 32px;
+  text-align: center;
+  font-size: 24px;
+  font-weight: bold;
+  color: rgba(255, 255, 255, 0.6);
+  z-index: 2;
+}
+.hd-title {
+  position: absolute;
+  left: 78px;
+  top: 35px;
+  width: 180px;
+  height: 42px;
+  text-align: center;
+  font-size: 32px;
+  font-weight: bold;
+  color: #ffffff;
+  z-index: 2;
+}
+.menu-btn {
+  position: absolute;
+  right: 6px;
+  top: 19px;
+  width: 58px;
+  height: 58px;
+  z-index: 3;
+}
 
-  /* 顶部 header */
-  .header {
-    width: 100%;
-    height: 120px;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-    padding-left: 16px;
-    padding-right: 16px;
-  }
-  .back-btn,
-  .menu-btn {
-    width: 80px;
-    height: 80px;
-    border-radius: 40px;
-    background-color: rgba(255, 255, 255, 0.08);
-    border: 2px solid rgba(255, 255, 255, 0.12);
-    justify-content: center;
-    align-items: center;
-  }
-  .back-btn.placeholder {
-    background-color: transparent;
-    border: 0;
-  }
-  .menu-dots {
-    font-size: 44px;
-    color: #FFFFFF;
-    font-weight: bold;
-  }
-  .title {
-    font-size: 48px;
-    color: #FFFFFF;
-    font-weight: bold;
-  }
+.search-area {
+  position: relative;
+  z-index: 2;
+  flex-direction: row;
+  justify-content: center;
+  margin-top: 102px;
+  margin-bottom: 4px;
+}
+.search-box {
+  width: 300px;
+  height: 60px;
+  background-color: #262626;
+  border-radius: 30px;
+  border: 3px solid rgba(255, 255, 255, 0.06);
+  justify-content: center;
+  align-items: center;
+}
+.search-text {
+  font-size: 28px;
+  color: #ffffff;
+  padding-left: 24px;
+  padding-right: 24px;
+  lines: 1;
+  text-overflow: ellipsis;
+}
+.search-placeholder {
+  font-size: 26px;
+  color: #636366;
+}
 
-  /* 搜索卡片 */
-  .search-card {
-    margin-left: 16px;
-    margin-right: 16px;
-    margin-top: 8px;
-    margin-bottom: 16px;
-    height: 96px;
-    border-radius: 48px;
-    background-color: rgba(255, 255, 255, 0.08);
-    border: 2px solid rgba(255, 255, 255, 0.12);
-    flex-direction: row;
-    align-items: center;
-    padding-left: 32px;
-    padding-right: 32px;
-  }
-  .search-text {
-    flex: 1;
-    font-size: 36px;
-    color: #FFFFFF;
-  }
-  .search-placeholder {
-    flex: 1;
-    font-size: 32px;
-    color: #636366;
-  }
-  .clear-btn {
-    font-size: 30px;
-    color: #0A84FF;
-    padding-left: 16px;
-  }
+.result-list {
+  flex: 1;
+  width: 100%;
+  position: relative;
+  z-index: 2;
+}
+.result-item {
+  width: 100%;
+  flex-direction: row;
+  justify-content: center;
+}
+.card {
+  width: 324px;
+  margin-top: 4px;
+  background-color: #262626;
+  border-radius: 36px;
+  border: 3px solid rgba(255, 255, 255, 0.06);
+  flex-direction: row;
+  align-items: center;
+  padding-left: 20px;
+  padding-right: 20px;
+  padding-top: 14px;
+  padding-bottom: 14px;
+}
+.card-left {
+  flex-direction: column;
+  flex: 1;
+}
+.card-label {
+  font-size: 32px;
+  line-height: 40px;
+  font-weight: bold;
+  color: #ffffff;
+  lines: 1;
+}
+.card-sub {
+  font-size: 24px;
+  line-height: 32px;
+  color: rgba(255, 255, 255, 0.6);
+  margin-top: 4px;
+  lines: 2;
+  text-overflow: ellipsis;
+}
 
-  /* 结果区 */
-  .result-area {
-    flex: 1;
-    width: 100%;
-  }
-  .result-list {
-    width: 100%;
-    height: 100%;
-  }
-  .result-item {
-    width: 100%;
-    padding-left: 16px;
-    padding-right: 16px;
-    padding-top: 8px;
-    padding-bottom: 8px;
-  }
-  .word-card {
-    width: 100%;
-    border-radius: 24px;
-    background-color: rgba(255, 255, 255, 0.08);
-    border: 2px solid rgba(255, 255, 255, 0.12);
-    flex-direction: column;
-    padding-top: 24px;
-    padding-right: 28px;
-    padding-bottom: 24px;
-    padding-left: 28px;
-  }
-  .word-row {
-    flex-direction: row;
-    align-items: flex-end;
-  }
-  .word {
-    font-size: 38px;
-    color: #FFFFFF;
-    font-weight: bold;
-    margin-right: 16px;
-  }
-  .phonetic {
-    font-size: 28px;
-    color: #8E8E93;
-    margin-bottom: 4px;
-  }
-  .translation {
-    font-size: 32px;
-    color: #EBEBF5;
-    lines: 2;
-    text-overflow: ellipsis;
-    margin-top: 12px;
-  }
-
-  /* 空状态 */
-  .empty-item {
-    width: 100%;
-    height: 300px;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-  }
-  .empty-title {
-    font-size: 40px;
-    color: #8E8E93;
-    text-align: center;
-  }
-  .empty-desc {
-    font-size: 30px;
-    color: #636366;
-    margin-top: 16px;
-    text-align: center;
-  }
-
-  /* 输入法区 */
-  .keyboard-area {
-    flex: 1;
-    width: 100%;
-    flex-direction: column;
-  }
-  .input-bar {
-    width: 100%;
-    height: 80px;
-    justify-content: center;
-    align-items: center;
-    background-color: rgba(255, 255, 255, 0.08);
-    border: 2px solid rgba(255, 255, 255, 0.12);
-    margin-left: 16px;
-    margin-right: 16px;
-    margin-top: 8px;
-    border-radius: 40px;
-  }
-  .preview-text {
-    font-size: 36px;
-    color: #FFFFFF;
-  }
-  .cursor {
-    color: #0A84FF;
-  }
+.empty-item {
+  width: 100%;
+  flex-direction: row;
+  justify-content: center;
+  margin-top: 80px;
+}
+.empty-text {
+  font-size: 28px;
+  color: rgba(255, 255, 255, 0.5);
+}
 </style>
 
 <script>
@@ -262,32 +187,47 @@
       query: '',
       results: [],
       dict: null,
-      dictName: '基础英汉词典',
-      wordCount: 0,
-      showKeyboard: false
+      showKeyboard: false,
+      time: ''
     },
 
     onInit() {
+      this.updateTime()
       const that = this
       const dictMgr = this.$app.$def.dict
       dictMgr.getActiveDict(function (res) {
         if (res.success && res.dict) {
           that.dict = res.dict
-          that.dictName = res.dict.name || '基础英汉词典'
-          that.wordCount = (res.dict.words && res.dict.words.length) || 0
-        } else {
-          that.dictName = '加载失败'
-          dictMgr.showToast('词典加载失败')
         }
       })
     },
 
-    // 切换键盘显隐
-    toggleKeyboard() {
-      this.showKeyboard = !this.showKeyboard
+    onShow() {
+      this.updateTime()
     },
 
-    // 输入法输出字符（中文选中候选词时触发）
+    updateTime() {
+      const d = new Date()
+      const h = String(d.getHours()).padStart(2, '0')
+      const m = String(d.getMinutes()).padStart(2, '0')
+      this.time = h + ':' + m
+    },
+
+    onBackPress() {
+      if (this.showKeyboard) {
+        this.showKeyboard = false
+        return true
+      }
+      return false
+    },
+
+    toggleKeyboard() {
+      this.showKeyboard = !this.showKeyboard
+      if (!this.showKeyboard) {
+        this.doSearch()
+      }
+    },
+
     onInputComplete(evt) {
       const content = evt.detail && evt.detail.content
       if (content) {
@@ -296,7 +236,6 @@
       }
     },
 
-    // 输入法删除
     onInputDelete() {
       if (this.query.length > 0) {
         this.query = this.query.slice(0, -1)
@@ -304,24 +243,6 @@
       }
     },
 
-    // 英文按键（英文模式下即时输入）
-    onKeyDown(evt) {
-      const content = evt.detail && evt.detail.content
-      if (content) {
-        this.query = this.query + content
-        this.doSearch()
-      }
-    },
-
-    // 键盘显隐变化
-    onKeyboardVisibility(evt) {
-      const visible = evt.detail && evt.detail.visible
-      if (visible === false) {
-        // 键盘隐藏时不强制改 showKeyboard
-      }
-    },
-
-    // 执行本地搜索
     doSearch() {
       if (!this.dict || !this.dict.words) {
         this.results = []
@@ -331,15 +252,9 @@
       this.results = dictMgr.search(this.query, this.dict.words, 50)
     },
 
-    // 清空查询
-    clearQuery() {
-      this.query = ''
-      this.results = []
-    },
-
-    // 点击词条跳转详情
     onWordClick(evt) {
       const item = evt && evt.detail ? evt.detail : null
+      if (!item) return
       router.push({
         uri: '/detail',
         params: {
@@ -350,7 +265,6 @@
       })
     },
 
-    // 跳转词典管理页
     goManage() {
       router.push({ uri: '/manage' })
     }

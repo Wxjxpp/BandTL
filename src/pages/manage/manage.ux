@@ -1,171 +1,146 @@
 <template>
   <div class="page">
-    <!-- 状态栏 -->
-    <div class="status-bar">
-      <text class="status-time">09:28</text>
-    </div>
+    <image class="header-bg" src="/common/hd.png" />
+    <text class="hd-time">{{time}}</text>
+    <text class="hd-title">设置</text>
+    <image class="hd-back" src="/common/back.png" @click="goBack" />
 
-    <!-- 顶部 header：返回 + 标题 + 三点菜单 -->
-    <div class="header">
-      <div class="back-btn" onclick="goBack">
-        <text class="back-arrow">&#60;</text>
-      </div>
-      <text class="title">设置</text>
-      <div class="back-btn placeholder"></div>
-    </div>
-
-    <!-- 内容滚动区 -->
-    <scroll class="content" scroll-y="true">
-      <div class="list-area">
-        <!-- 当前词典 -->
-        <div class="setting-card">
-          <div class="card-text">
-            <text class="card-title">当前词典</text>
-            <text class="card-desc">{{dictName}} · {{wordCount}}词</text>
+    <scroll class="content-full" scroll-y="true" bounces="true">
+      <div class="scroll-inner">
+        <div class="card" @click="useBuiltin" if="{{dictSource !== '内置'}}">
+          <div class="card-left">
+            <text class="card-label">使用内置词典</text>
+            <text class="card-sub">{{builtinName}} · {{builtinCount}}词</text>
           </div>
         </div>
 
-        <!-- 内置词典（仅在当前为用户导入时显示） -->
-        <div class="setting-card" onclick="useBuiltin" if="{{dictSource !== '内置'}}">
-          <div class="card-text">
-            <text class="card-title">使用内置词典</text>
-            <text class="card-desc">恢复为基础英汉词典</text>
+        <div class="card" @click="goImport">
+          <div class="card-left">
+            <text class="card-label">导入新词典</text>
+            <text class="card-sub">通过 AstroBox 推送</text>
           </div>
         </div>
 
-        <!-- 导入词典 -->
-        <div class="setting-card" onclick="goImport">
-          <div class="card-text">
-            <text class="card-title">导入新词典</text>
-            <text class="card-desc">通过 AstroBox 推送导入</text>
+        <div class="card" @click="removeUserDict" if="{{hasUserDict}}">
+          <div class="card-left">
+            <text class="card-label text-danger">删除已导入词典</text>
+            <text class="card-sub">恢复使用内置词典</text>
           </div>
         </div>
 
-        <!-- 删除已导入 -->
-        <div class="setting-card danger" onclick="removeUserDict" if="{{hasUserDict}}">
-          <div class="card-text">
-            <text class="card-title danger">删除已导入词典</text>
-            <text class="card-desc">恢复使用内置词典</text>
+        <div class="card" @click="showAbout">
+          <div class="card-left">
+            <text class="card-label">关于</text>
+            <text class="card-sub">版本 1.0.7</text>
           </div>
         </div>
 
-        <!-- 关于 -->
-        <div class="setting-card" onclick="showAbout">
-          <div class="card-text">
-            <text class="card-title">关于</text>
-            <text class="card-desc">版本 1.0.7</text>
-          </div>
-        </div>
+        <div class="spacer"></div>
       </div>
     </scroll>
   </div>
 </template>
 
 <style>
-  .page {
-    flex-direction: column;
-    background-color: #000000;
-    width: 100%;
-    height: 100%;
-  }
+.page {
+  width: 336px;
+  height: 480px;
+  background-color: #000000;
+  position: relative;
+}
 
-  /* 状态栏 */
-  .status-bar {
-    width: 100%;
-    height: 50px;
-    flex-direction: row;
-    justify-content: center;
-    align-items: center;
-  }
-  .status-time {
-    font-size: 26px;
-    color: #FFFFFF;
-    font-weight: bold;
-  }
+.header-bg {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 336px;
+  height: 102px;
+  z-index: 1;
+}
+.hd-time {
+  position: absolute;
+  left: 78px;
+  top: 7px;
+  width: 180px;
+  height: 32px;
+  text-align: center;
+  font-size: 24px;
+  font-weight: bold;
+  color: rgba(255, 255, 255, 0.6);
+  z-index: 2;
+}
+.hd-title {
+  position: absolute;
+  left: 78px;
+  top: 35px;
+  width: 180px;
+  height: 42px;
+  text-align: center;
+  font-size: 32px;
+  font-weight: bold;
+  color: #ffffff;
+  z-index: 2;
+}
+.hd-back {
+  position: absolute;
+  left: 6px;
+  top: 6px;
+  width: 72px;
+  height: 72px;
+  z-index: 2;
+}
 
-  /* 顶部 header */
-  .header {
-    width: 100%;
-    height: 120px;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-    padding-left: 16px;
-    padding-right: 16px;
-  }
-  .back-btn {
-    width: 80px;
-    height: 80px;
-    border-radius: 40px;
-    background-color: rgba(255, 255, 255, 0.08);
-    border: 2px solid rgba(255, 255, 255, 0.12);
-    justify-content: center;
-    align-items: center;
-  }
-  .back-btn.placeholder {
-    background-color: transparent;
-    border: 0;
-  }
-  .back-arrow {
-    font-size: 44px;
-    color: #FFFFFF;
-    font-weight: bold;
-  }
-  .title {
-    font-size: 48px;
-    color: #FFFFFF;
-    font-weight: bold;
-  }
+.content-full {
+  width: 336px;
+  height: 480px;
+  flex-direction: column;
+}
+.scroll-inner {
+  padding-top: 87px;
+  padding-right: 6px;
+  padding-bottom: 20px;
+  padding-left: 6px;
+  flex-direction: column;
+  align-items: center;
+}
 
-  /* 内容滚动区 */
-  .content {
-    flex: 1;
-    width: 100%;
-  }
-
-  /* 设置卡片列表 */
-  .list-area {
-    flex-direction: column;
-    padding-left: 16px;
-    padding-right: 16px;
-    padding-top: 16px;
-    padding-bottom: 24px;
-  }
-  .setting-card {
-    width: 100%;
-    border-radius: 32px;
-    background-color: rgba(255, 255, 255, 0.08);
-    border: 2px solid rgba(255, 255, 255, 0.12);
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-    padding-top: 32px;
-    padding-right: 32px;
-    padding-bottom: 32px;
-    padding-left: 32px;
-    margin-bottom: 16px;
-  }
-  .setting-card.danger {
-    background-color: rgba(255, 69, 58, 0.15);
-    border: 2px solid rgba(255, 69, 58, 0.3);
-  }
-  .card-text {
-    flex: 1;
-    flex-direction: column;
-  }
-  .card-title {
-    font-size: 40px;
-    color: #FFFFFF;
-    font-weight: bold;
-  }
-  .card-title.danger {
-    color: #FF453A;
-  }
-  .card-desc {
-    font-size: 30px;
-    color: #8E8E93;
-    margin-top: 10px;
-  }
+.card {
+  width: 324px;
+  height: 112px;
+  margin-top: 8px;
+  background-color: #262626;
+  border-radius: 36px;
+  border: 3px solid rgba(255, 255, 255, 0.06);
+  flex-direction: row;
+  align-items: center;
+  padding-left: 20px;
+  padding-right: 20px;
+}
+.card-left {
+  flex-direction: column;
+  flex: 1;
+}
+.card-label {
+  font-size: 32px;
+  line-height: 40px;
+  font-weight: bold;
+  color: #ffffff;
+  lines: 1;
+}
+.card-sub {
+  font-size: 28px;
+  line-height: 37px;
+  font-weight: bold;
+  color: rgba(255, 255, 255, 0.6);
+  margin-top: 4px;
+  lines: 1;
+}
+.text-danger {
+  color: #ff4444;
+}
+.spacer {
+  height: 20px;
+}
 </style>
 
 <script>
@@ -178,16 +153,26 @@
       wordCount: 0,
       dictSource: '',
       hasUserDict: false,
-      userDictName: '',
-      userWordCount: 0
+      builtinName: '基础英汉词典',
+      builtinCount: 0,
+      time: ''
     },
 
     onInit() {
+      this.updateTime()
       this.loadDictInfo()
     },
 
     onShow() {
+      this.updateTime()
       this.loadDictInfo()
+    },
+
+    updateTime() {
+      const d = new Date()
+      const h = String(d.getHours()).padStart(2, '0')
+      const m = String(d.getMinutes()).padStart(2, '0')
+      this.time = h + ':' + m
     },
 
     loadDictInfo() {
@@ -197,16 +182,16 @@
         if (res.success && res.dict) {
           if (res.dict.source === 'user') {
             that.hasUserDict = true
-            that.userDictName = res.dict.name || '用户词典'
-            that.userWordCount = (res.dict.words && res.dict.words.length) || 0
-            that.dictName = that.userDictName
-            that.wordCount = that.userWordCount
+            that.dictName = res.dict.name || '用户词典'
+            that.wordCount = (res.dict.words && res.dict.words.length) || 0
             that.dictSource = '用户导入'
           } else {
             that.hasUserDict = false
             that.dictName = res.dict.name || '基础英汉词典'
             that.wordCount = (res.dict.words && res.dict.words.length) || 0
             that.dictSource = '内置'
+            that.builtinName = that.dictName
+            that.builtinCount = that.wordCount
           }
         }
       })
@@ -217,7 +202,7 @@
       const dictMgr = this.$app.$def.dict
       dictMgr.removeUserDict(function (res) {
         if (res.success) {
-          dictMgr.showToast('已切换为内置词典')
+          prompt.showToast({ message: '已切换为内置词典' })
           that.loadDictInfo()
         }
       })
@@ -232,7 +217,7 @@
       const dictMgr = this.$app.$def.dict
       dictMgr.removeUserDict(function (res) {
         if (res.success) {
-          dictMgr.showToast('已删除导入词典')
+          prompt.showToast({ message: '已删除导入词典' })
           that.loadDictInfo()
         }
       })
@@ -244,6 +229,11 @@
 
     goBack() {
       router.back()
+    },
+
+    onBackPress() {
+      router.back()
+      return true
     }
   }
 </script>

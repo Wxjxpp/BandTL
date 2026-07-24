@@ -1,49 +1,32 @@
 <template>
   <div class="page">
-    <!-- 状态栏 -->
-    <div class="status-bar">
-      <text class="status-time">09:28</text>
-    </div>
+    <image class="header-bg" src="/common/hd.png" />
+    <text class="hd-time">{{time}}</text>
+    <text class="hd-title">同步内容</text>
+    <image class="hd-back" src="/common/back.png" @click="goBack" />
 
-    <!-- 顶部 header：返回 + 标题 + 三点菜单 -->
-    <div class="header">
-      <div class="back-btn" onclick="goBack">
-        <text class="back-arrow">&#60;</text>
-      </div>
-      <text class="title">同步内容</text>
-      <div class="back-btn placeholder"></div>
-    </div>
-
-    <!-- 内容区 -->
-    <div class="content">
-      <!-- 状态图标方块（按设计稿：48px 圆角的渐变大图标） -->
-      <div class="icon-area">
-        <div class="icon-box {{phase}}">
-          <text class="icon-text" if="{{phase === 'idle'}}">连接</text>
-          <text class="icon-text" if="{{phase === 'receiving'}}">同步</text>
-          <text class="icon-text" if="{{phase === 'done'}}">完成</text>
-          <text class="icon-text" if="{{phase === 'error'}}">失败</text>
-        </div>
+    <div class="content-area">
+      <div class="icon-box {{phase}}">
+        <text class="icon-label" if="{{phase === 'idle'}}">连接</text>
+        <text class="icon-label" if="{{phase === 'receiving'}}">同步</text>
+        <text class="icon-label" if="{{phase === 'done'}}">完成</text>
+        <text class="icon-label" if="{{phase === 'error'}}">失败</text>
       </div>
 
-      <!-- 状态文字 -->
-      <div class="status-text-area">
-        <text class="status-title" if="{{phase === 'idle'}}">等待选择</text>
-        <text class="status-title" if="{{phase === 'receiving'}}">正在同步</text>
-        <text class="status-title" if="{{phase === 'done'}}">同步成功</text>
-        <text class="status-title" if="{{phase === 'error'}}">同步失败</text>
+      <text class="status-title" if="{{phase === 'idle'}}">等待连接</text>
+      <text class="status-title" if="{{phase === 'receiving'}}">正在同步</text>
+      <text class="status-title" if="{{phase === 'done'}}">同步成功</text>
+      <text class="status-title" if="{{phase === 'error'}}">同步失败</text>
 
-        <text class="status-desc" if="{{phase === 'idle' && !error}}">连接成功，请在连接的 AstroBox 中打开 BandTL 词典导入插件，选择 JSON 词典文件并点击推送</text>
-        <text class="status-desc" if="{{phase === 'receiving'}}">{{name}}</text>
-        <text class="status-desc" if="{{phase === 'done'}}">已加载 {{wordCount}} 个词条</text>
-        <text class="status-desc error" if="{{phase === 'error'}}">{{error}}</text>
-      </div>
+      <text class="status-desc" if="{{phase === 'idle' && !error}}">在 AstroBox 插件中选择 JSON 文件推送</text>
+      <text class="status-desc" if="{{phase === 'receiving'}}">{{name}}</text>
+      <text class="status-desc" if="{{phase === 'done'}}">已加载 {{wordCount}} 个词条</text>
+      <text class="status-desc err-desc" if="{{phase === 'error'}}">{{error}}</text>
 
-      <!-- 进度胶囊（按设计稿：左"内容"右百分数） -->
-      <div class="progress-area" if="{{phase !== 'idle'}}">
-        <div class="progress-pill">
+      <div class="progress-wrap" if="{{phase !== 'idle'}}">
+        <div class="progress-bar">
           <text class="progress-label">内容</text>
-          <text class="progress-percent {{phase}}">{{progressPercent}}%</text>
+          <text class="progress-num {{phase}}">{{progressPercent}}%</text>
         </div>
       </div>
     </div>
@@ -51,159 +34,130 @@
 </template>
 
 <style>
-  .page {
-    flex-direction: column;
-    background-color: #000000;
-    width: 100%;
-    height: 100%;
-  }
+.page {
+  width: 336px;
+  height: 480px;
+  background-color: #000000;
+  position: relative;
+  flex-direction: column;
+}
 
-  /* 状态栏 */
-  .status-bar {
-    width: 100%;
-    height: 50px;
-    flex-direction: row;
-    justify-content: center;
-    align-items: center;
-  }
-  .status-time {
-    font-size: 26px;
-    color: #FFFFFF;
-    font-weight: bold;
-  }
+.header-bg {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 336px;
+  height: 102px;
+  z-index: 1;
+}
+.hd-time {
+  position: absolute;
+  left: 78px;
+  top: 7px;
+  width: 180px;
+  height: 32px;
+  text-align: center;
+  font-size: 24px;
+  font-weight: bold;
+  color: rgba(255, 255, 255, 0.6);
+  z-index: 2;
+}
+.hd-title {
+  position: absolute;
+  left: 78px;
+  top: 35px;
+  width: 180px;
+  height: 42px;
+  text-align: center;
+  font-size: 32px;
+  font-weight: bold;
+  color: #ffffff;
+  z-index: 2;
+}
+.hd-back {
+  position: absolute;
+  left: 6px;
+  top: 6px;
+  width: 72px;
+  height: 72px;
+  z-index: 2;
+}
 
-  /* 顶部 header */
-  .header {
-    width: 100%;
-    height: 120px;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-    padding-left: 16px;
-    padding-right: 16px;
-  }
-  .back-btn {
-    width: 80px;
-    height: 80px;
-    border-radius: 40px;
-    background-color: rgba(255, 255, 255, 0.08);
-    border: 2px solid rgba(255, 255, 255, 0.12);
-    justify-content: center;
-    align-items: center;
-  }
-  .back-btn.placeholder {
-    background-color: transparent;
-    border: 0;
-  }
-  .back-arrow {
-    font-size: 44px;
-    color: #FFFFFF;
-    font-weight: bold;
-  }
-  .title {
-    font-size: 48px;
-    color: #FFFFFF;
-    font-weight: bold;
-  }
+.content-area {
+  position: relative;
+  z-index: 2;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 20px;
+}
 
-  /* 内容区 */
-  .content {
-    flex: 1;
-    width: 100%;
-    flex-direction: column;
-    align-items: center;
-    padding-top: 24px;
-    padding-left: 24px;
-    padding-right: 24px;
-    padding-bottom: 24px;
-  }
+.icon-box {
+  width: 140px;
+  height: 140px;
+  border-radius: 36px;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 32px;
+}
+.icon-box.idle { background-color: #5E5CE6; }
+.icon-box.receiving { background-color: #0A84FF; }
+.icon-box.done { background-color: #30D158; }
+.icon-box.error { background-color: #FF453A; }
+.icon-label {
+  font-size: 32px;
+  color: #ffffff;
+  font-weight: bold;
+}
 
-  /* 图标方块（按设计稿：渐变背景 + 48px 圆角） */
-  .icon-area {
-    margin-top: 40px;
-    margin-bottom: 40px;
-  }
-  .icon-box {
-    width: 200px;
-    height: 200px;
-    border-radius: 48px;
-    justify-content: center;
-    align-items: center;
-  }
-  .icon-box.idle {
-    background-color: #5E5CE6;
-  }
-  .icon-box.receiving {
-    background-color: #0A84FF;
-  }
-  .icon-box.done {
-    background-color: #30D158;
-  }
-  .icon-box.error {
-    background-color: #FF453A;
-  }
-  .icon-text {
-    font-size: 36px;
-    color: #FFFFFF;
-    font-weight: bold;
-  }
+.status-title {
+  font-size: 34px;
+  color: #ffffff;
+  font-weight: bold;
+  margin-bottom: 12px;
+}
+.status-desc {
+  font-size: 24px;
+  color: rgba(255, 255, 255, 0.5);
+  text-align: center;
+  padding-left: 24px;
+  padding-right: 24px;
+  line-height: 32px;
+}
+.status-desc.err-desc {
+  color: #FF453A;
+}
 
-  /* 状态文字 */
-  .status-text-area {
-    width: 100%;
-    flex-direction: column;
-    align-items: center;
-    margin-bottom: 40px;
-  }
-  .status-title {
-    font-size: 48px;
-    color: #FFFFFF;
-    font-weight: bold;
-    text-align: center;
-  }
-  .status-desc {
-    font-size: 32px;
-    color: #8E8E93;
-    text-align: center;
-    line-height: 48px;
-    margin-top: 16px;
-  }
-  .status-desc.error {
-    color: #FF453A;
-  }
-
-  /* 进度胶囊（按设计稿） */
-  .progress-area {
-    width: 100%;
-  }
-  .progress-pill {
-    width: 100%;
-    height: 96px;
-    border-radius: 48px;
-    background-color: rgba(255, 255, 255, 0.08);
-    border: 2px solid rgba(255, 255, 255, 0.12);
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-    padding-left: 40px;
-    padding-right: 40px;
-  }
-  .progress-label {
-    font-size: 40px;
-    color: #FFFFFF;
-    font-weight: bold;
-  }
-  .progress-percent {
-    font-size: 40px;
-    color: #8E8E93;
-    font-weight: bold;
-  }
-  .progress-percent.done {
-    color: #30D158;
-  }
-  .progress-percent.error {
-    color: #FF453A;
-  }
+.progress-wrap {
+  width: 100%;
+  padding-left: 12px;
+  padding-right: 12px;
+  margin-top: 32px;
+}
+.progress-bar {
+  width: 100%;
+  height: 56px;
+  border-radius: 28px;
+  background-color: #262626;
+  border: 3px solid rgba(255, 255, 255, 0.06);
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  padding-left: 28px;
+  padding-right: 28px;
+}
+.progress-label {
+  font-size: 26px;
+  color: #ffffff;
+  font-weight: bold;
+}
+.progress-num {
+  font-size: 26px;
+  color: rgba(255, 255, 255, 0.5);
+  font-weight: bold;
+}
+.progress-num.done { color: #30D158; }
+.progress-num.error { color: #FF453A; }
 </style>
 
 <script>
@@ -216,7 +170,8 @@
       received: 0,
       total: 0,
       error: '',
-      wordCount: 0
+      wordCount: 0,
+      time: ''
     },
 
     computed: {
@@ -229,6 +184,7 @@
     },
 
     onInit() {
+      this.updateTime()
       const that = this
       const dictMgr = this.$app.$def.dict
       this._unsub = dictMgr.onImportStatus(function (state) {
@@ -247,6 +203,17 @@
       })
     },
 
+    onShow() {
+      this.updateTime()
+    },
+
+    updateTime() {
+      const d = new Date()
+      const h = String(d.getHours()).padStart(2, '0')
+      const m = String(d.getMinutes()).padStart(2, '0')
+      this.time = h + ':' + m
+    },
+
     onDestroy() {
       if (this._unsub) {
         this._unsub()
@@ -255,6 +222,11 @@
 
     goBack() {
       router.back()
+    },
+
+    onBackPress() {
+      router.back()
+      return true
     }
   }
 </script>

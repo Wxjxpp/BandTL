@@ -1,153 +1,160 @@
 <template>
   <div class="page">
-    <!-- 状态栏 -->
-    <div class="status-bar">
-      <text class="status-time">09:28</text>
-    </div>
+    <image class="header-bg" src="/common/hd.png" />
+    <text class="hd-time">{{time}}</text>
+    <text class="hd-title">词条详情</text>
+    <image class="hd-back" src="/common/back.png" @click="goBack" />
 
-    <!-- 顶部 header：返回 + 标题 + 三点菜单 -->
-    <div class="header">
-      <div class="back-btn" onclick="goBack">
-        <text class="back-arrow">&#60;</text>
-      </div>
-      <text class="title">词条详情</text>
-      <div class="back-btn placeholder"></div>
-    </div>
-
-    <!-- 内容滚动区 -->
-    <scroll class="content" scroll-y="true">
-      <div class="detail-card">
-        <!-- 单词 -->
-        <text class="word">{{word}}</text>
-        <!-- 音标 -->
-        <text class="phonetic" if="{{phonetic}}">/{{phonetic}}/</text>
-        <!-- 分隔线 -->
-        <div class="divider"></div>
-        <!-- 释义 -->
-        <text class="section-label">释义</text>
-        <text class="translation">{{translation}}</text>
+    <scroll class="content-full" scroll-y="true" bounces="true">
+      <div class="scroll-inner">
+        <div class="detail-card">
+          <text class="word-text">{{word}}</text>
+          <text class="phonetic-text" if="{{phonetic}}">/{{phonetic}}/</text>
+          <div class="divider"></div>
+          <text class="label-text">释义</text>
+          <text class="trans-text">{{translation}}</text>
+        </div>
+        <div class="spacer"></div>
       </div>
     </scroll>
   </div>
 </template>
 
 <style>
-  .page {
-    flex-direction: column;
-    background-color: #000000;
-    width: 100%;
-    height: 100%;
-  }
+.page {
+  width: 336px;
+  height: 480px;
+  background-color: #000000;
+  position: relative;
+}
 
-  /* 状态栏 */
-  .status-bar {
-    width: 100%;
-    height: 50px;
-    flex-direction: row;
-    justify-content: center;
-    align-items: center;
-  }
-  .status-time {
-    font-size: 26px;
-    color: #FFFFFF;
-    font-weight: bold;
-  }
+.header-bg {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 336px;
+  height: 102px;
+  z-index: 1;
+}
+.hd-time {
+  position: absolute;
+  left: 78px;
+  top: 7px;
+  width: 180px;
+  height: 32px;
+  text-align: center;
+  font-size: 24px;
+  font-weight: bold;
+  color: rgba(255, 255, 255, 0.6);
+  z-index: 2;
+}
+.hd-title {
+  position: absolute;
+  left: 78px;
+  top: 35px;
+  width: 180px;
+  height: 42px;
+  text-align: center;
+  font-size: 32px;
+  font-weight: bold;
+  color: #ffffff;
+  z-index: 2;
+}
+.hd-back {
+  position: absolute;
+  left: 6px;
+  top: 6px;
+  width: 72px;
+  height: 72px;
+  z-index: 2;
+}
 
-  /* 顶部 header */
-  .header {
-    width: 100%;
-    height: 120px;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-    padding-left: 16px;
-    padding-right: 16px;
-  }
-  .back-btn {
-    width: 80px;
-    height: 80px;
-    border-radius: 40px;
-    background-color: rgba(255, 255, 255, 0.08);
-    border: 2px solid rgba(255, 255, 255, 0.12);
-    justify-content: center;
-    align-items: center;
-  }
-  .back-btn.placeholder {
-    background-color: transparent;
-    border: 0;
-  }
-  .back-arrow {
-    font-size: 44px;
-    color: #FFFFFF;
-    font-weight: bold;
-  }
-  .title {
-    font-size: 48px;
-    color: #FFFFFF;
-    font-weight: bold;
-  }
+.content-full {
+  width: 336px;
+  height: 480px;
+  flex-direction: column;
+}
+.scroll-inner {
+  padding-top: 87px;
+  padding-right: 6px;
+  padding-bottom: 20px;
+  padding-left: 6px;
+  flex-direction: column;
+  align-items: center;
+}
 
-  /* 内容滚动区 */
-  .content {
-    flex: 1;
-    width: 100%;
-  }
-
-  /* 详情卡片 */
-  .detail-card {
-    margin-left: 16px;
-    margin-right: 16px;
-    margin-top: 16px;
-    border-radius: 48px;
-    background-color: rgba(255, 255, 255, 0.08);
-    border: 2px solid rgba(255, 255, 255, 0.12);
-    flex-direction: column;
-    padding-top: 40px;
-    padding-right: 32px;
-    padding-bottom: 40px;
-    padding-left: 32px;
-  }
-  .word {
-    font-size: 64px;
-    color: #FFFFFF;
-    font-weight: bold;
-  }
-  .phonetic {
-    font-size: 32px;
-    color: #8E8E93;
-    margin-top: 16px;
-  }
-  .divider {
-    width: 100%;
-    height: 2px;
-    background-color: rgba(255, 255, 255, 0.12);
-    margin-top: 32px;
-    margin-bottom: 32px;
-  }
-  .section-label {
-    font-size: 30px;
-    color: #8E8E93;
-    margin-bottom: 16px;
-  }
-  .translation {
-    font-size: 40px;
-    color: #EBEBF5;
-    line-height: 60px;
-  }
+.detail-card {
+  width: 324px;
+  background-color: #262626;
+  border-radius: 36px;
+  border: 3px solid rgba(255, 255, 255, 0.06);
+  flex-direction: column;
+  padding: 24px 20px;
+  margin-top: 8px;
+}
+.word-text {
+  font-size: 44px;
+  line-height: 56px;
+  color: #ffffff;
+  font-weight: bold;
+}
+.phonetic-text {
+  font-size: 26px;
+  color: rgba(255, 255, 255, 0.5);
+  margin-top: 8px;
+}
+.divider {
+  width: 100%;
+  height: 3px;
+  background-color: rgba(255, 255, 255, 0.1);
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+.label-text {
+  font-size: 24px;
+  color: rgba(255, 255, 255, 0.5);
+  margin-bottom: 8px;
+}
+.trans-text {
+  font-size: 30px;
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 44px;
+}
+.spacer {
+  height: 20px;
+}
 </style>
 
 <script>
   import router from '@system.router'
 
   export default {
-    // public 接收来自 index 页 router.push 的 params
     public: {
       word: '',
       phonetic: '',
       translation: ''
     },
+    private: {
+      time: ''
+    },
+    onInit() {
+      this.updateTime()
+    },
+    onShow() {
+      this.updateTime()
+    },
+    updateTime() {
+      const d = new Date()
+      const h = String(d.getHours()).padStart(2, '0')
+      const m = String(d.getMinutes()).padStart(2, '0')
+      this.time = h + ':' + m
+    },
     goBack() {
       router.back()
+    },
+    onBackPress() {
+      router.back()
+      return true
     }
   }
 </script>
