@@ -11,7 +11,8 @@
     <div class="status-area">
       <image class="status-img" src="/common/{{statusImg}}.png" />
       <text class="status-text">{{statusTitle}}</text>
-      <text class="status-desc" if="{{phase === 'idle'}}">在 AstroBox 中选择 JSON 推送</text>
+      <text class="status-desc" if="{{phase === 'idle'}}">在 AstroBox 中点击注册连接</text>
+      <text class="status-desc" if="{{phase === 'connected'}}">已连接，请在插件中选择文件并推送</text>
       <text class="status-desc" if="{{phase === 'receiving'}}">{{name}}</text>
       <text class="status-desc" if="{{phase === 'done'}}">已加载 {{wordCount}} 词条</text>
       <text class="status-desc err" if="{{phase === 'error'}}">{{error}}</text>
@@ -146,6 +147,7 @@
         if (this.phase === 'done') return '同步成功'
         if (this.phase === 'error') return '同步失败'
         if (this.phase === 'receiving') return '正在同步'
+        if (this.phase === 'connected') return '已连接'
         return '等待连接'
       },
       progressPercent: function () {

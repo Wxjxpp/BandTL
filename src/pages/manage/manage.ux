@@ -3,115 +3,87 @@
     <image class="header-bg" src="/common/hd.png" />
     <text class="hd-time">{{time}}</text>
     <text class="hd-title">词典管理</text>
-    <div class="hd-back" @click="goBack">
-      <image src="/common/back.png" style="width:100%;height:100%;" />
-    </div>
+    <image class="back-btn" src="/common/back.png" @click="goBack" />
 
-    <scroll class="scroll-body" scroll-y="true" bounces="true">
-      <div class="scroll-inner">
+    <list class="main-list">
+      <list-item class="tip-item" type="tip">
+        <text class="tip-text">已加载词典</text>
+      </list-item>
 
-        <div class="section-title">
-          <text class="section-text">已加载词典</text>
+      <list-item class="dict-item" for="{{dictList}}" tid="name" type="dict"
+                 @click="onDictClick($item)"
+                 onlongpress="onDictLongPress($item)">
+        <div class="dict-info">
+          <text class="dict-name">{{$item.name}}</text>
+          <text class="dict-sub">{{$item.sourceLabel}} · {{$item.wordCount}}词</text>
         </div>
+        <image class="switch-img"
+               src="{{$item.enabled ? '/common/Switch_ON.png' : '/common/Switch_OFF.png'}}"
+               @click="onToggle($item.name)" />
+      </list-item>
 
-        <div class="card" for="{{dictList}}" @click="openDict($item.name)" @longpress="onDictLongPress($item.name)">
-          <div class="card-left">
-            <text class="card-label">{{$item.name}}</text>
-            <text class="card-sub">{{$item.sourceLabel}} · {{$item.wordCount}}词</text>
-          </div>
-          <div class="card-right">
-            <div class="toggle {{$item.enabled ? 'toggle-on' : 'toggle-off'}}" @click="onToggle($item.name, $item.enabled)">
-              <div class="toggle-knob {{$item.enabled ? 'knob-on' : 'knob-off'}}"></div>
-            </div>
-          </div>
+      <list-item class="dict-item" type="new" @click="goNewDict">
+        <div class="dict-info">
+          <text class="dict-name" style="color:#0A84FF;">新建词典</text>
+          <text class="dict-sub">在手环上创建自定义词典</text>
         </div>
+      </list-item>
 
-        <div class="card" @click="goCreate">
-          <div class="card-left">
-            <text class="card-label" style="color:#0A84FF;">+ 新建词典</text>
-            <text class="card-sub">在手环上创建自定义词典</text>
-          </div>
+      <list-item class="dict-item" type="import" @click="goImport">
+        <div class="dict-info">
+          <text class="dict-name">导入词典</text>
+          <text class="dict-sub">通过 AstroBox 推送</text>
         </div>
-
-        <div class="card" @click="goImport">
-          <div class="card-left">
-            <text class="card-label">导入词典</text>
-            <text class="card-sub">通过 AstroBox 推送</text>
-          </div>
-        </div>
-
-        <div class="spacer"></div>
-      </div>
-    </scroll>
+      </list-item>
+    </list>
   </div>
 </template>
 
 <style>
 .page {
-  width: 336px;
-  height: 480px;
-  background-color: #000000;
-  position: relative;
+  width: 336px; height: 480px; background-color: #000000; position: relative;
 }
 .header-bg {
   position: absolute; left: 0; top: 0; width: 336px; height: 102px; z-index: 1;
 }
 .hd-time {
   position: absolute; left: 78px; top: 7px; width: 180px; height: 32px;
-  text-align: center; font-size: 24px; font-weight: bold;
-  color: rgba(255,255,255,0.6); z-index: 2;
+  text-align: center; font-size: 24px; font-weight: bold; color: rgba(255,255,255,0.6); z-index: 2;
 }
 .hd-title {
   position: absolute; left: 78px; top: 35px; width: 180px; height: 42px;
   text-align: center; font-size: 32px; font-weight: bold; color: #ffffff; z-index: 2;
 }
-.hd-back {
+.back-btn {
   position: absolute; left: 6px; top: 6px; width: 72px; height: 72px; z-index: 2;
 }
-.scroll-body {
-  width: 336px; height: 480px;
+.main-list {
+  width: 336px; height: 480px; padding-top: 86px; padding-left: 6px; padding-right: 6px;
 }
-.scroll-inner {
-  padding-top: 87px; padding-right: 6px; padding-bottom: 20px; padding-left: 6px;
-  flex-direction: column; align-items: center;
+.tip-item {
+  width: 100%; height: 50px; padding-left: 16px; padding-right: 16px;
+  flex-direction: row; align-items: center;
 }
-.section-title {
-  width: 324px; padding-left: 8px; padding-right: 8px; margin-bottom: 4px;
-}
-.section-text {
+.tip-text {
   font-size: 24px; color: rgba(255,255,255,0.4); font-weight: bold;
 }
-.card {
-  width: 324px; height: 100px; margin-top: 8px;
-  background-color: #262626; border-radius: 36px;
-  border: 3px solid rgba(255,255,255,0.06);
+.dict-item {
+  width: 100%; height: 112px; padding-left: 20px; padding-right: 20px;
+  margin-bottom: 8px; background-color: #262626; border-radius: 36px;
   flex-direction: row; align-items: center;
-  padding-left: 20px; padding-right: 20px;
 }
-.card-left {
-  flex-direction: column; flex: 1;
+.dict-info {
+  flex: 1; flex-direction: column;
 }
-.card-label {
-  font-size: 28px; line-height: 36px; font-weight: bold; color: #ffffff; lines: 1;
+.dict-name {
+  font-size: 32px; font-weight: bold; color: #ffffff; lines: 1; text-overflow: ellipsis;
 }
-.card-sub {
-  font-size: 22px; line-height: 28px; font-weight: bold;
-  color: rgba(255,255,255,0.6); margin-top: 4px; lines: 1;
+.dict-sub {
+  font-size: 28px; font-weight: bold; color: rgba(255,255,255,0.6); lines: 1; text-overflow: ellipsis;
 }
-.card-right {
-  width: 64px; height: 40px; justify-content: center; align-items: center;
+.switch-img {
+  width: 60px; height: 42px;
 }
-.toggle {
-  width: 56px; height: 32px; border-radius: 16px; justify-content: center;
-}
-.toggle-on { background-color: #30D158; }
-.toggle-off { background-color: #3A3A3C; }
-.toggle-knob {
-  width: 26px; height: 26px; border-radius: 13px; background-color: #ffffff;
-}
-.knob-on { align-self: flex-end; margin-right: 3px; }
-.knob-off { align-self: flex-start; margin-left: 3px; }
-.spacer { height: 20px; }
 </style>
 
 <script>
@@ -123,8 +95,8 @@
     private: {
       dictList: [],
       time: '',
-      longPressTimer: null,
-      longPressTarget: null
+      longPressTriggered: false,
+      longPressTimer: null
     },
 
     onInit() {
@@ -139,7 +111,9 @@
 
     updateTime() {
       var d = new Date()
-      this.time = String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0')
+      var h = d.getHours()
+      var m = d.getMinutes()
+      this.time = (h < 10 ? '0' + h : h) + ':' + (m < 10 ? '0' + m : m)
     },
 
     loadList() {
@@ -157,7 +131,37 @@
       })
     },
 
-    onToggle(name, _enabled) {
+    onDictClick(item) {
+      if (this.longPressTriggered) return
+      router.push({ uri: '/create', params: { dictName: item.name } })
+    },
+
+    onDictLongPress(item) {
+      this.longPressTriggered = true
+      if (this.longPressTimer) clearTimeout(this.longPressTimer)
+      var that = this
+      this.longPressTimer = setTimeout(function () {
+        that.longPressTriggered = false
+        that.longPressTimer = null
+      }, 300)
+
+      if (item.source === 'builtin') {
+        prompt.showToast({ message: '内置词典不可删除' })
+        return
+      }
+      router.push({
+        uri: '/confirm',
+        params: {
+          action: 'deleteDict',
+          title: '删除词典',
+          confirmText: '确认删除词典吗？',
+          subText: item.name,
+          dictName: item.name
+        }
+      })
+    },
+
+    onToggle(name) {
       var that = this
       dict.toggleDict(name, function (res) {
         if (res.success) {
@@ -168,57 +172,8 @@
       })
     },
 
-    onDictLongPress(name) {
-      var that = this
-      prompt.showDialog({
-        title: '删除词典',
-        message: '确定删除"' + name + '"吗？\n此操作不可撤销',
-        buttons: [
-          { text: '取消', color: '#888888' },
-          { text: '删除', color: '#FF453A' }
-        ],
-        success: function (res) {
-          if (res.index === 1) {
-            dict.deleteDict(name, function (result) {
-              if (result.success) {
-                prompt.showToast({ message: '已删除' })
-                that.loadList()
-              } else {
-                prompt.showToast({ message: result.error || '删除失败' })
-              }
-            })
-          }
-        }
-      })
-    },
-
-    openDict(name) {
-      router.push({ uri: '/create', params: { dictName: name } })
-    },
-
-    goCreate() {
-      var that = this
-      prompt.showDialog({
-        title: '新建词典',
-        message: '请输入词典名称',
-        showInput: true,
-        buttons: [
-          { text: '取消', color: '#888888' },
-          { text: '创建', color: '#0A84FF' }
-        ],
-        success: function (dRes) {
-          if (dRes.index === 1 && dRes.value) {
-            dict.createDict(dRes.value, function (result) {
-              if (result.success) {
-                prompt.showToast({ message: '创建成功' })
-                that.loadList()
-              } else {
-                prompt.showToast({ message: result.error || '创建失败' })
-              }
-            })
-          }
-        }
-      })
+    goNewDict() {
+      router.push({ uri: '/create', params: { dictName: '', mode: 'new' } })
     },
 
     goImport() {

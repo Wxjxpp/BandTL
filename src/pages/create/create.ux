@@ -1,91 +1,181 @@
+<import name="input-method" src="../../common/components/InputMethod/InputMethod.ux"></import>
+
 <template>
   <div class="page">
     <image class="header-bg" src="/common/hd.png" />
     <text class="hd-time">{{time}}</text>
-    <text class="hd-title">{{dictName}}</text>
-    <div class="hd-back" @click="goBack">
-      <image src="/common/back.png" style="width:100%;height:100%;" />
+    <text class="hd-title">{{state === 'newDict' ? '新建词典' : dictName}}</text>
+    <image class="back-btn" src="/common/back.png" @click="goBack" />
+
+    <!-- 模式1：新建词典，输入名称 -->
+    <div class="content" if="{{state === 'newDict'}}">
+      <div class="input-display" @click="toggleKeyboard">
+        <text class="input-label">词典名称</text>
+        <div class="input-field">
+          <text class="input-text" if="{{inputText}}">{{inputText}}</text>
+          <text class="input-placeholder" if="{{!inputText}}">请输入词典名称</text>
+        </div>
+      </div>
+      <div class="action-bar">
+        <text class="action-btn action-confirm" @click="doCreateDict">创建词典</text>
+      </div>
     </div>
 
-    <div class="add-bar" @click="showAddDialog">
-      <text class="add-text">+ 添加词条</text>
-    </div>
+    <!-- 模式2：词条列表 -->
+    <list class="word-list" if="{{state === 'wordList'}}">
+      <list-item class="add-btn-item" type="add" @click="startAddWord">
+        <text class="add-btn-text">+ 添加词条</text>
+      </list-item>
 
-    <list class="word-list">
-      <list-item class="word-item" for="{{words}}" tid="id" type="word" @longpress="onWordLongPress($item.word)">
+      <list-item class="word-item" for="{{words}}" tid="id" type="word"
+                 @click="onWordClick($item)"
+                 onlongpress="onWordLongPress($item)">
         <div class="word-card">
-          <div class="word-row">
-            <text class="word">{{$item.word}}</text>
-            <text class="phonetic" if="{{$item.phonetic}}">/{{$item.phonetic}}/</text>
-          </div>
-          <text class="trans">{{$item.translation}}</text>
+          <text class="word-text">{{$item.word}}</text>
+          <text class="trans-text" if="{{$item.translation}}">{{$item.translation}}</text>
         </div>
       </list-item>
+
       <list-item class="empty-item" type="empty" if="{{words.length === 0}}">
-        <text class="empty-text">暂无词条，点击上方添加</text>
+        <text class="empty-text">暂无词条</text>
+        <text class="empty-hint">点击上方添加</text>
       </list-item>
     </list>
+
+    <!-- 模式3：输入英文单词 -->
+    <div class="content" if="{{state === 'addWord'}}">
+      <div class="input-display" @click="toggleKeyboard">
+        <text class="input-label">英文单词</text>
+        <div class="input-field">
+          <text class="input-text" if="{{inputText}}">{{inputText}}</text>
+          <text class="input-placeholder" if="{{!inputText}}">输入英文单词</text>
+        </div>
+      </div>
+      <div class="action-bar">
+        <text class="action-btn action-cancel" @click="cancelAdd">取消</text>
+        <text class="action-btn action-confirm" @click="confirmWord">下一步</text>
+      </div>
+    </div>
+
+    <!-- 模式4：输入中文翻译 -->
+    <div class="content" if="{{state === 'addTrans'}}">
+      <div class="input-display" @click="toggleKeyboard">
+        <text class="input-label">中文翻译</text>
+        <div class="input-field">
+          <text class="input-text" if="{{inputText}}">{{inputText}}</text>
+          <text class="input-placeholder" if="{{!inputText}}">输入{{newWord}}的中文翻译</text>
+        </div>
+      </div>
+      <div class="action-bar">
+        <text class="action-btn action-cancel" @click="backToWord">上一步</text>
+        <text class="action-btn action-confirm" @click="confirmAdd">添加</text>
+      </div>
+    </div>
+
+    <input-method
+      hide="{{!showKeyboard}}"
+      keyboardtype="QWERTY"
+      maxlength="20"
+      vibratemode="short"
+      screentype="rect"
+      @complete="onInput"
+      @delete="onDelete">
+    </input-method>
   </div>
 </template>
 
 <style>
 .page {
   width: 336px; height: 480px; background-color: #000000; position: relative;
+  flex-direction: column;
 }
 .header-bg {
   position: absolute; left: 0; top: 0; width: 336px; height: 102px; z-index: 1;
 }
 .hd-time {
   position: absolute; left: 78px; top: 7px; width: 180px; height: 32px;
-  text-align: center; font-size: 24px; font-weight: bold;
-  color: rgba(255,255,255,0.6); z-index: 2;
+  text-align: center; font-size: 24px; font-weight: bold; color: rgba(255,255,255,0.6); z-index: 2;
 }
 .hd-title {
   position: absolute; left: 78px; top: 35px; width: 180px; height: 42px;
-  text-align: center; font-size: 28px; font-weight: bold; color: #ffffff; z-index: 2;
+  text-align: center; font-size: 32px; font-weight: bold; color: #ffffff; z-index: 2;
   lines: 1; text-overflow: ellipsis;
 }
-.hd-back {
+.back-btn {
   position: absolute; left: 6px; top: 6px; width: 72px; height: 72px; z-index: 2;
 }
-.add-bar {
-  margin-top: 102px; width: 336px; height: 52px;
-  justify-content: center; align-items: center;
-  background-color: #1C1C1E; border-bottom: 1px solid #2C2C2E;
+
+/* 内容区域 */
+.content {
+  margin-top: 102px; width: 336px; flex: 1; flex-direction: column;
 }
-.add-text {
-  font-size: 26px; color: #0A84FF; font-weight: bold;
+.input-display {
+  width: 300px; height: 100px; margin-left: 18px; margin-top: 20px;
+  background-color: #262626; border-radius: 24px; padding-left: 20px; padding-right: 20px;
+  flex-direction: column; justify-content: center;
 }
+.input-label {
+  font-size: 22px; color: rgba(255,255,255,0.4); font-weight: bold; margin-bottom: 8px;
+}
+.input-field {
+  flex-direction: row; align-items: center;
+}
+.input-text {
+  font-size: 32px; color: #ffffff; font-weight: bold; lines: 1; text-overflow: ellipsis;
+}
+.input-placeholder {
+  font-size: 28px; color: #636366;
+}
+.action-bar {
+  width: 336px; height: 80px; margin-top: 24px;
+  flex-direction: row; justify-content: center; align-items: center;
+}
+.action-btn {
+  width: 130px; height: 60px; border-radius: 30px; margin-left: 10px; margin-right: 10px;
+  font-size: 28px; font-weight: bold; text-align: center; line-height: 60px;
+}
+.action-confirm {
+  background-color: #0A84FF; color: #ffffff;
+}
+.action-cancel {
+  background-color: #3A3A3C; color: rgba(255,255,255,0.8);
+}
+
+/* 词条列表 */
 .word-list {
-  flex: 1; width: 100%;
+  width: 336px; height: 480px; padding-top: 86px; padding-left: 6px; padding-right: 6px;
+}
+.add-btn-item {
+  width: 100%; height: 70px; margin-bottom: 8px;
+  background-color: #1C1C1E; border-radius: 36px;
+  justify-content: center; align-items: center;
+}
+.add-btn-text {
+  font-size: 28px; color: #0A84FF; font-weight: bold;
 }
 .word-item {
   width: 100%; flex-direction: row; justify-content: center;
 }
 .word-card {
-  width: 324px; margin-top: 4px;
+  width: 324px; margin-bottom: 6px;
   background-color: #262626; border-radius: 24px;
-  border: 3px solid rgba(255,255,255,0.06);
-  flex-direction: column; padding: 12px 18px;
+  padding-left: 20px; padding-right: 20px; padding-top: 14px; padding-bottom: 14px;
+  flex-direction: column;
 }
-.word-row {
-  flex-direction: row; align-items: flex-end;
+.word-text {
+  font-size: 32px; color: #ffffff; font-weight: bold; lines: 1; text-overflow: ellipsis;
 }
-.word {
-  font-size: 28px; color: #ffffff; font-weight: bold; margin-right: 8px;
-}
-.phonetic {
-  font-size: 20px; color: rgba(255,255,255,0.5);
-}
-.trans {
-  font-size: 24px; color: rgba(255,255,255,0.7); margin-top: 4px;
-  lines: 2; text-overflow: ellipsis;
+.trans-text {
+  font-size: 26px; color: rgba(255,255,255,0.6); margin-top: 6px; lines: 2; text-overflow: ellipsis;
 }
 .empty-item {
-  width: 100%; flex-direction: row; justify-content: center; margin-top: 80px;
+  width: 100%; height: 120px; flex-direction: column; justify-content: center; align-items: center;
 }
 .empty-text {
-  font-size: 26px; color: rgba(255,255,255,0.4);
+  font-size: 28px; color: rgba(255,255,255,0.5);
+}
+.empty-hint {
+  font-size: 24px; color: rgba(255,255,255,0.3); margin-top: 8px;
 }
 </style>
 
@@ -96,31 +186,66 @@
 
   export default {
     private: {
-      dictName: '',
-      words: [],
       time: '',
-      isBuiltin: false
+      state: 'wordList',
+      isBuiltin: false,
+      words: [],
+      inputText: '',
+      newWord: '',
+      showKeyboard: false,
+      longPressTriggered: false,
+      longPressTimer: null
+    },
+    protected: {
+      mode: '',
+      dictName: ''
     },
 
     onInit() {
       this.updateTime()
-      this.dictName = this.$routeParams.dictName || ''
-      this.loadWords()
+      if (this.mode === 'new' || !this.dictName) {
+        this.state = 'newDict'
+        this.showKeyboard = true
+      } else {
+        this.state = 'wordList'
+        this.loadWords()
+      }
     },
 
     onShow() {
       this.updateTime()
-      this.loadWords()
+      if (this.state === 'wordList') {
+        this.loadWords()
+      }
     },
 
     updateTime() {
       var d = new Date()
-      this.time = String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0')
+      var h = d.getHours()
+      var m = d.getMinutes()
+      this.time = (h < 10 ? '0' + h : h) + ':' + (m < 10 ? '0' + m : m)
+    },
+
+    toggleKeyboard() {
+      this.showKeyboard = !this.showKeyboard
+    },
+
+    onInput(evt) {
+      var content = evt.detail && evt.detail.content
+      if (content && this.inputText.length < 20) {
+        this.inputText = this.inputText + content
+      }
+    },
+
+    onDelete() {
+      if (this.inputText.length > 0) {
+        this.inputText = this.inputText.slice(0, -1)
+      }
     },
 
     loadWords() {
-      var that = this
       if (!this.dictName) return
+      var that = this
       dict.getDictDetail(this.dictName, function (res) {
         if (res.success) {
           that.words = res.words || []
@@ -129,83 +254,141 @@
       })
     },
 
-    showAddDialog() {
-      if (this.isBuiltin) {
-        prompt.showToast({ message: '内置词典不可编辑' })
+    doCreateDict() {
+      var name = this.inputText.trim()
+      if (!name) {
+        prompt.showToast({ message: '请输入名称' })
         return
       }
       var that = this
-      prompt.showDialog({
-        title: '添加词条',
-        message: '请输入英文单词',
-        showInput: true,
-        buttons: [
-          { text: '取消', color: '#888888' },
-          { text: '下一步', color: '#0A84FF' }
-        ],
-        success: function (res1) {
-          if (res1.index === 1 && res1.value) {
-            var word = res1.value.trim()
-            prompt.showDialog({
-              title: '添加词条',
-              message: '请输入"' + word + '"的中文翻译',
-              showInput: true,
-              buttons: [
-                { text: '取消', color: '#888888' },
-                { text: '添加', color: '#30D158' }
-              ],
-              success: function (res2) {
-                if (res2.index === 1 && res2.value) {
-                  var trans = res2.value.trim()
-                  dict.addWord(that.dictName, word, trans, '', function (result) {
-                    if (result.success) {
-                      prompt.showToast({ message: '已添加' })
-                      that.loadWords()
-                    } else {
-                      prompt.showToast({ message: result.error || '添加失败' })
-                    }
-                  })
-                }
-              }
-            })
-          }
+      dict.createDict(name, function (res) {
+        if (res.success) {
+          that.dictName = name
+          that.state = 'wordList'
+          that.inputText = ''
+          that.showKeyboard = false
+          that.loadWords()
+        } else {
+          prompt.showToast({ message: res.error || '创建失败' })
         }
       })
     },
 
-    onWordLongPress(word) {
+    startAddWord() {
       if (this.isBuiltin) {
         prompt.showToast({ message: '内置词典不可编辑' })
         return
       }
+      this.state = 'addWord'
+      this.inputText = ''
+      this.showKeyboard = true
+    },
+
+    cancelAdd() {
+      this.state = 'wordList'
+      this.inputText = ''
+      this.showKeyboard = false
+    },
+
+    confirmWord() {
+      var word = this.inputText.trim()
+      if (!word) {
+        prompt.showToast({ message: '请输入单词' })
+        return
+      }
+      this.newWord = word
+      this.inputText = ''
+      this.state = 'addTrans'
+      this.showKeyboard = true
+    },
+
+    backToWord() {
+      this.inputText = this.newWord
+      this.state = 'addWord'
+    },
+
+    confirmAdd() {
+      var trans = this.inputText.trim()
+      if (!trans) {
+        prompt.showToast({ message: '请输入翻译' })
+        return
+      }
       var that = this
-      prompt.showDialog({
-        title: '删除词条',
-        message: '确定删除"' + word + '"吗？',
-        buttons: [
-          { text: '取消', color: '#888888' },
-          { text: '删除', color: '#FF453A' }
-        ],
-        success: function (res) {
-          if (res.index === 1) {
-            dict.deleteWord(that.dictName, word, function (result) {
-              if (result.success) {
-                prompt.showToast({ message: '已删除' })
-                that.loadWords()
-              } else {
-                prompt.showToast({ message: result.error || '删除失败' })
-              }
-            })
-          }
+      dict.addWord(this.dictName, this.newWord, trans, '', function (res) {
+        if (res.success) {
+          prompt.showToast({ message: '已添加' })
+          that.inputText = ''
+          that.newWord = ''
+          that.showKeyboard = false
+          that.state = 'wordList'
+          that.loadWords()
+        } else {
+          prompt.showToast({ message: res.error || '添加失败' })
+        }
+      })
+    },
+
+    onWordClick(item) {
+      if (this.longPressTriggered) return
+      router.push({
+        uri: '/detail',
+        params: {
+          word: item.word,
+          phonetic: item.phonetic || '',
+          translation: item.translation || ''
+        }
+      })
+    },
+
+    onWordLongPress(item) {
+      this.longPressTriggered = true
+      if (this.longPressTimer) clearTimeout(this.longPressTimer)
+      var that = this
+      this.longPressTimer = setTimeout(function () {
+        that.longPressTriggered = false
+        that.longPressTimer = null
+      }, 300)
+
+      if (this.isBuiltin) {
+        prompt.showToast({ message: '内置词典不可编辑' })
+        return
+      }
+      router.push({
+        uri: '/confirm',
+        params: {
+          action: 'deleteWord',
+          title: '删除词条',
+          confirmText: '确认删除词条吗？',
+          subText: item.word,
+          dictName: this.dictName,
+          word: item.word
         }
       })
     },
 
     goBack() {
+      if (this.showKeyboard) {
+        this.showKeyboard = false
+        return
+      }
+      if (this.state !== 'wordList' && this.state !== 'newDict') {
+        this.state = 'wordList'
+        this.inputText = ''
+        return
+      }
       router.back()
     },
 
     onBackPress() {
+      if (this.showKeyboard) {
+        this.showKeyboard = false
+        return true
+      }
+      if (this.state !== 'wordList' && this.state !== 'newDict') {
+        this.state = 'wordList'
+        this.inputText = ''
+        return true
+      }
       router.back()
       return true
     }

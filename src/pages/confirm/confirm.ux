@@ -1,0 +1,119 @@
+<template>
+  <div class="page">
+    <image class="header-bg" src="/common/hd.png" />
+    <image class="back-btn" src="/common/back.png" @click="back" />
+    <image class="confirm-btn" src="/common/delete.png" @click="confirmAction" />
+    <text class="hd-time">{{nowTime}}</text>
+    <text class="hd-title">{{title}}</text>
+
+    <image class="bin-icon" src="/common/bin.png" />
+    <text class="confirm-text">{{confirmText}}</text>
+    <text class="sub-text">{{subText}}</text>
+  </div>
+</template>
+
+<style>
+.page {
+  width: 336px; height: 480px; background-color: #000000; position: relative;
+}
+.header-bg {
+  position: absolute; left: 0; top: 0; width: 336px; height: 102px;
+}
+.back-btn {
+  position: absolute; left: 6px; top: 6px; width: 72px; height: 72px;
+}
+.confirm-btn {
+  position: absolute; left: 258px; top: 6px; width: 72px; height: 72px;
+}
+.hd-time {
+  position: absolute; left: 78px; top: 7px; width: 180px; height: 32px;
+  text-align: center; font-size: 24px; font-weight: bold; color: rgba(255,255,255,0.6);
+}
+.hd-title {
+  position: absolute; left: 78px; top: 35px; width: 180px; height: 42px;
+  text-align: center; font-size: 32px; font-weight: bold; color: #ffffff;
+}
+.bin-icon {
+  position: absolute; left: 104px; top: 146px; width: 128px; height: 128px;
+}
+.confirm-text {
+  position: absolute; left: 0; top: 298px; width: 336px; height: 42px;
+  text-align: center; font-size: 32px; font-weight: bold; color: #ffffff;
+  padding-left: 20px; padding-right: 20px;
+}
+.sub-text {
+  position: absolute; left: 0; top: 340px; width: 336px; height: 32px;
+  text-align: center; font-size: 24px; font-weight: bold; color: rgba(255,255,255,0.6);
+  padding-left: 20px; padding-right: 20px;
+}
+</style>
+
+<script>
+  import router from '@system.router'
+  import prompt from '@system.prompt'
+  import dict from '../../common/scripts/dict'
+
+  export default {
+    private: {
+      nowTime: '00:00'
+    },
+    protected: {
+      action: '',
+      title: '请确认',
+      confirmText: '确认执行操作吗？',
+      subText: '此操作不可逆',
+      dictName: '',
+      word: ''
+    },
+
+    onInit() {
+      this.updateTime()
+    },
+
+    updateTime() {
+      var d = new Date()
+      var h = d.getHours()
+      var m = d.getMinutes()
+      this.nowTime = (h < 10 ? '0' + h : h) + ':' + (m < 10 ? '0' + m : m)
+    },
+
+    back() {
+      router.back()
+    },
+
+    confirmAction() {
+      switch (this.action) {
+        case 'deleteDict': return this.doDeleteDict()
+        case 'deleteWord': return this.doDeleteWord()
+        default:
+          prompt.showToast({ message: '未知操作' })
+          router.back()
+      }
+    },
+
+    doDeleteDict() {
+      var name = this.dictName
+      dict.deleteDict(name, function (res) {
+        if (res.success) {
+          prompt.showToast({ message: '已删除' })
+        } else {
+          prompt.showToast({ message: res.error || '删除失败' })
+        }
+        router.back()
+      })
+    },
+
+    doDeleteWord() {
+      var name = this.dictName
+      var word = this.word
+      dict.deleteWord(name, word, function (res) {
+        if (res.success) {
+          prompt.showToast({ message: '已删除' })
+        } else {
+          prompt.showToast({ message: res.error || '删除失败' })
+        }
+        router.back()
+      })
+    }
+  }
+</script>

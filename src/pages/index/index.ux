@@ -14,9 +14,9 @@
       </div>
     </div>
 
-    <list class="result-list">
-      <list-item class="result-item best-match" for="{{exactResults}}" tid="id" type="word" onclick="onWordClick">
-        <div class="card" style="background-color:{{$idx === 0 ? '#0A3388' : '#262626'}};border-color:{{$idx === 0 ? '#0A84FF' : 'rgba(255,255,255,0.06)'}};">
+    <list class="result-list" if="{{!showKeyboard}}">
+      <list-item class="result-item" for="{{exactResults}}" tid="id" type="word" @click="onWordClick($item)">
+        <div class="card {{$idx === 0 ? 'card-best' : 'card-normal'}}">
           <div class="card-left">
             <text class="card-label">{{$item.word}}</text>
             <text class="card-sub" if="{{$item.translation}}">{{$item.translation}}</text>
@@ -29,8 +29,8 @@
         <text class="fuzzy-label">模糊匹配</text>
       </list-item>
 
-      <list-item class="result-item" for="{{fuzzyResults}}" tid="id" type="fuzzy" onclick="onWordClick">
-        <div class="card">
+      <list-item class="result-item" for="{{fuzzyResults}}" tid="id" type="fuzzy" @click="onWordClick($item)">
+        <div class="card card-normal">
           <div class="card-left">
             <text class="card-label">{{$item.word}}</text>
             <text class="card-sub" if="{{$item.translation}}">{{$item.translation}}</text>
@@ -80,7 +80,7 @@
 }
 .search-area {
   position: relative; z-index: 2; flex-direction: row; justify-content: center;
-  margin-top: 102px; margin-bottom: 4px;
+  margin-top: 102px; margin-bottom: 4px; height: 60px;
 }
 .search-box {
   width: 300px; height: 60px; background-color: #262626; border-radius: 30px;
@@ -94,20 +94,22 @@
   font-size: 26px; color: #636366;
 }
 .result-list {
-  flex: 1; width: 100%; position: relative; z-index: 2;
+  width: 336px; height: 314px; position: relative; z-index: 2;
 }
 .result-item {
   width: 100%; flex-direction: row; justify-content: center;
 }
-.best-match {
-  /* no extra style needed, inline style handles it */
-}
 .card {
-  width: 324px; margin-top: 4px; border-radius: 36px;
-  border: 3px solid rgba(255,255,255,0.06);
+  width: 324px; margin-top: 4px; border-radius: 36px; border-width: 3px;
   flex-direction: row; align-items: center;
   padding-left: 20px; padding-right: 20px;
   padding-top: 14px; padding-bottom: 14px;
+}
+.card-best {
+  background-color: #0A3388; border-color: #0A84FF;
+}
+.card-normal {
+  background-color: #262626; border-color: rgba(255,255,255,0.06);
 }
 .card-left {
   flex-direction: column; flex: 1;
@@ -210,15 +212,15 @@
         return
       }
       var result = dict.search(this.query, this.dictData.words, 50)
-      // 标记变形词匹配
       var exact = result.exact || []
       var fuzzy = result.fuzzy || []
+      var ql = this.query.toLowerCase()
       for (var i = 0; i < exact.length; i++) {
         var wl = (exact[i].word || '').toLowerCase()
-        if (wl !== this.query.toLowerCase()) {
+        if (wl !== ql) {
           var forms = exact[i].forms || []
           for (var j = 0; j < forms.length; j++) {
-            if ((forms[j] || '').toLowerCase() === this.query.toLowerCase()) {
+            if ((forms[j] || '').toLowerCase() === ql) {
               exact[i]._matchedForm = forms[j]
               break
             }
@@ -229,8 +231,7 @@
       this.fuzzyResults = fuzzy
     },
 
-    onWordClick(evt) {
-      var item = evt && evt.detail ? evt.detail : null
+    onWordClick(item) {
       if (!item) return
       router.push({
         uri: '/detail',

@@ -11,8 +11,12 @@ pub mod ui;
 struct MyPlugin;
 
 impl event_v3::Guest for MyPlugin {
-    fn on_event(_event_type: EventType, _event_payload: String) -> FutureReader<String> {
+    fn on_event(event_type: EventType, _event_payload: String) -> FutureReader<String> {
         let (writer, reader) = astrobox_ng_wit::wit_future::new::<String>(|| "".to_string());
+        // 设备连接/断开时自动刷新 UI 上的设备状态
+        if matches!(event_type, EventType::DeviceAction) {
+            ui::on_device_changed();
+        }
         astrobox_ng_wit::spawn(async move {
             let _ = writer.write("".to_string()).await;
         });
@@ -22,12 +26,10 @@ impl event_v3::Guest for MyPlugin {
     fn on_ui_event_v3(
         event_id: String,
         event: event_v3::Event,
-        _event_payload: String,
+        event_payload: String,
     ) -> FutureReader<String> {
         let (writer, reader) = astrobox_ng_wit::wit_future::new::<String>(|| "".to_string());
-        // 用 block_on 在同步上下文中执行异步导入流程。
-        // spawn+await 嵌套太深会导致 host 无法正确轮询 pick_file 的 future。
-        ui::ui_event_processor(event, &event_id);
+        ui::ui_event_processor(event, &event_id, &event_payload);
         astrobox_ng_wit::spawn(async move {
             let _ = writer.write("".to_string()).await;
         });
@@ -55,7 +57,7 @@ impl event_v3::Guest for MyPlugin {
 impl lifecycle::Guest for MyPlugin {
     fn on_load() -> () {
         logger::init();
-        tracing::info!("BandTL 词典导入插件已加载 (v1.0.7)");
+        tracing::info!("BandTL 词典导入插件已加载 (v1.1.0)");
     }
 }
 
