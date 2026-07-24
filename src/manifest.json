@@ -1,8 +1,8 @@
 {
   "package": "com.wristband.dict",
   "name": "手环词典",
-  "versionName": "1.0.9-alpha",
-  "versionCode": 9,
+  "versionName": "1.0.10-alpha",
+  "versionCode": 10,
   "minPlatformVersion": 1000,
   "icon": "/common/images/logo.png",
   "deviceTypeList": ["watch"],
