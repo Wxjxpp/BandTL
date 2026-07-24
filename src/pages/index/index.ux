@@ -14,9 +14,9 @@
       </div>
     </div>
 
-    <list class="result-list" if="{{!showKeyboard}}">
+    <list class="result-list">
       <list-item class="result-item" for="{{exactResults}}" tid="id" type="word" @click="onWordClick($item)">
-        <div class="card {{$idx === 0 ? 'card-best' : 'card-normal'}}">
+        <div class="card {{$item._isBest ? 'card-best' : 'card-normal'}}">
           <div class="card-left">
             <text class="card-label">{{$item.word}}</text>
             <text class="card-sub" if="{{$item.translation}}">{{$item.translation}}</text>
@@ -158,19 +158,27 @@
 
     onInit() {
       this.updateTime()
+      this.loadDict()
+    },
+
+    onShow() {
+      this.updateTime()
+      this.loadDict()
+    },
+
+    loadDict() {
       var that = this
       dict.getActiveDict(function (res) {
         if (res.success && res.dict && res.dict.words && res.dict.words.length > 0) {
           that.dictData = res.dict
           that.dictLoaded = true
+          if (that.query) {
+            that.doSearch()
+          }
         } else {
           that.dictLoaded = false
         }
       })
-    },
-
-    onShow() {
-      this.updateTime()
     },
 
     updateTime() {
@@ -215,7 +223,9 @@
       var exact = result.exact || []
       var fuzzy = result.fuzzy || []
       var ql = this.query.toLowerCase()
+
       for (var i = 0; i < exact.length; i++) {
+        exact[i]._isBest = (i === 0)
         var wl = (exact[i].word || '').toLowerCase()
         if (wl !== ql) {
           var forms = exact[i].forms || []
