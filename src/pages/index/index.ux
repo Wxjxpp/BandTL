@@ -188,12 +188,13 @@
 <script>
   import router from '@system.router'
   import prompt from '@system.prompt'
+  import dict from '../../common/scripts/dict'
 
   export default {
     private: {
       query: '',
       results: [],
-      dict: null,
+      dictData: null,
       dictLoaded: false,
       showKeyboard: false,
       time: ''
@@ -202,10 +203,9 @@
     onInit() {
       this.updateTime()
       const that = this
-      const dictMgr = this.$app.$def.dict
-      dictMgr.getActiveDict(function (res) {
+      dict.getActiveDict(function (res) {
         if (res.success && res.dict && res.dict.words && res.dict.words.length > 0) {
-          that.dict = res.dict
+          that.dictData = res.dict
           that.dictLoaded = true
         } else {
           that.dictLoaded = false
@@ -234,7 +234,6 @@
     },
 
     toggleKeyboard() {
-      // 如果键盘正在显示，关闭它并触发搜索
       if (this.showKeyboard) {
         this.showKeyboard = false
         this.doSearch()
@@ -261,12 +260,11 @@
         this.results = []
         return
       }
-      if (!this.dict || !this.dict.words) {
+      if (!this.dictData || !this.dictData.words) {
         this.results = []
         return
       }
-      const dictMgr = this.$app.$def.dict
-      this.results = dictMgr.search(this.query, this.dict.words, 50)
+      this.results = dict.search(this.query, this.dictData.words, 50)
     },
 
     onWordClick(evt) {

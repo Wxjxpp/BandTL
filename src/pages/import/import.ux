@@ -1,36 +1,25 @@
 <template>
   <div class="page">
-    <image class="header-bg" src="/common/hd.png" />
-    <text class="hd-time">{{time}}</text>
-    <text class="hd-title">同步内容</text>
-    <div class="hd-back" @click="goBack">
-      <image src="/common/back.png" style="width:100%;height:100%;" />
+    <text class="time">{{time}}</text>
+
+    <div class="title">
+      <text class="title-text">同步词典</text>
     </div>
 
-    <div class="content-area">
-      <div class="icon-box {{phase}}">
-        <text class="icon-label" if="{{phase === 'idle'}}">连接</text>
-        <text class="icon-label" if="{{phase === 'receiving'}}">同步</text>
-        <text class="icon-label" if="{{phase === 'done'}}">完成</text>
-        <text class="icon-label" if="{{phase === 'error'}}">失败</text>
-      </div>
+    <image class="back-btn" src="/common/back.png" @click="goBack" />
 
-      <text class="status-title" if="{{phase === 'idle'}}">等待连接</text>
-      <text class="status-title" if="{{phase === 'receiving'}}">正在同步</text>
-      <text class="status-title" if="{{phase === 'done'}}">同步成功</text>
-      <text class="status-title" if="{{phase === 'error'}}">同步失败</text>
-
-      <text class="status-desc" if="{{phase === 'idle' && !error}}">在 AstroBox 插件中选择 JSON 文件推送</text>
+    <div class="status-area">
+      <image class="status-img" src="/common/{{statusImg}}.png" />
+      <text class="status-text">{{statusTitle}}</text>
+      <text class="status-desc" if="{{phase === 'idle'}}">在 AstroBox 中选择 JSON 推送</text>
       <text class="status-desc" if="{{phase === 'receiving'}}">{{name}}</text>
-      <text class="status-desc" if="{{phase === 'done'}}">已加载 {{wordCount}} 个词条</text>
-      <text class="status-desc err-desc" if="{{phase === 'error'}}">{{error}}</text>
+      <text class="status-desc" if="{{phase === 'done'}}">已加载 {{wordCount}} 词条</text>
+      <text class="status-desc err" if="{{phase === 'error'}}">{{error}}</text>
+    </div>
 
-      <div class="progress-wrap" if="{{phase !== 'idle'}}">
-        <div class="progress-bar">
-          <text class="progress-label">内容</text>
-          <text class="progress-num {{phase}}">{{progressPercent}}%</text>
-        </div>
-      </div>
+    <div class="progress" if="{{phase !== 'idle'}}">
+      <text class="progress-label">进度</text>
+      <text class="progress-per">{{progressPercent}}%</text>
     </div>
   </div>
 </template>
@@ -40,130 +29,101 @@
   width: 336px;
   height: 480px;
   background-color: #000000;
-  position: relative;
   flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
 }
 
-.header-bg {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 336px;
-  height: 102px;
-  z-index: 1;
-}
-.hd-time {
-  position: absolute;
-  left: 78px;
-  top: 7px;
-  width: 180px;
-  height: 32px;
-  text-align: center;
+.time {
+  position: relative;
+  top: 10px;
   font-size: 24px;
   font-weight: bold;
   color: rgba(255, 255, 255, 0.6);
-  z-index: 2;
-}
-.hd-title {
-  position: absolute;
-  left: 78px;
-  top: 35px;
-  width: 180px;
-  height: 42px;
   text-align: center;
+}
+
+.title {
+  margin-top: 7px;
+  justify-content: center;
+  align-items: center;
+}
+
+.title-text {
   font-size: 32px;
   font-weight: bold;
   color: #ffffff;
-  z-index: 2;
 }
-.hd-back {
+
+.back-btn {
   position: absolute;
   left: 6px;
   top: 6px;
   width: 72px;
   height: 72px;
-  z-index: 2;
 }
 
-.content-area {
-  position: relative;
-  z-index: 2;
+.status-area {
   flex: 1;
   flex-direction: column;
-  align-items: center;
-  padding-top: 20px;
-}
-
-.icon-box {
-  width: 140px;
-  height: 140px;
-  border-radius: 36px;
   justify-content: center;
   align-items: center;
-  margin-bottom: 32px;
+  width: 100%;
 }
-.icon-box.idle { background-color: #5E5CE6; }
-.icon-box.receiving { background-color: #0A84FF; }
-.icon-box.done { background-color: #30D158; }
-.icon-box.error { background-color: #FF453A; }
-.icon-label {
+
+.status-img {
+  width: 128px;
+  height: 128px;
+}
+
+.status-text {
+  margin-top: 24px;
+  font-size: 32px;
+  color: #ffffff;
+  font-weight: bold;
+  margin-bottom: 12px;
+}
+
+.status-desc {
+  font-size: 24px;
+  color: rgba(255, 255, 255, 0.5);
+  text-align: center;
+  padding-left: 40px;
+  padding-right: 40px;
+  line-height: 32px;
+}
+
+.status-desc.err {
+  color: #FF453A;
+}
+
+.progress {
+  position: absolute;
+  bottom: 6px;
+  width: 95%;
+  height: 92px;
+  background-color: #262626;
+  border-radius: 36px;
+  justify-content: space-around;
+  align-items: center;
+}
+
+.progress-label {
   font-size: 32px;
   color: #ffffff;
   font-weight: bold;
 }
 
-.status-title {
-  font-size: 34px;
-  color: #ffffff;
-  font-weight: bold;
-  margin-bottom: 12px;
-}
-.status-desc {
-  font-size: 24px;
-  color: rgba(255, 255, 255, 0.5);
-  text-align: center;
-  padding-left: 24px;
-  padding-right: 24px;
-  line-height: 32px;
-}
-.status-desc.err-desc {
-  color: #FF453A;
-}
-
-.progress-wrap {
-  width: 100%;
-  padding-left: 12px;
-  padding-right: 12px;
-  margin-top: 32px;
-}
-.progress-bar {
-  width: 100%;
-  height: 56px;
-  border-radius: 28px;
-  background-color: #262626;
-  border: 3px solid rgba(255, 255, 255, 0.06);
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-  padding-left: 28px;
-  padding-right: 28px;
-}
-.progress-label {
-  font-size: 26px;
-  color: #ffffff;
+.progress-per {
+  font-size: 32px;
+  color: rgba(255, 255, 255, 0.6);
   font-weight: bold;
 }
-.progress-num {
-  font-size: 26px;
-  color: rgba(255, 255, 255, 0.5);
-  font-weight: bold;
-}
-.progress-num.done { color: #30D158; }
-.progress-num.error { color: #FF453A; }
 </style>
 
 <script>
   import router from '@system.router'
+  import dict from '../../common/scripts/dict'
 
   export default {
     private: {
@@ -177,6 +137,17 @@
     },
 
     computed: {
+      statusImg: function () {
+        if (this.phase === 'done') return 'success'
+        if (this.phase === 'error') return 'fail'
+        return 'dling'
+      },
+      statusTitle: function () {
+        if (this.phase === 'done') return '同步成功'
+        if (this.phase === 'error') return '同步失败'
+        if (this.phase === 'receiving') return '正在同步'
+        return '等待连接'
+      },
       progressPercent: function () {
         if (this.total <= 0) return 0
         if (this.phase === 'done') return 100
@@ -188,8 +159,7 @@
     onInit() {
       this.updateTime()
       const that = this
-      const dictMgr = this.$app.$def.dict
-      this._unsub = dictMgr.onImportStatus(function (state) {
+      this._unsub = dict.onImportStatus(function (state) {
         that.phase = state.phase
         that.name = state.name
         that.received = state.received
