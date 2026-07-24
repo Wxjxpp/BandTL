@@ -3,7 +3,9 @@
     <image class="header-bg" src="/common/hd.png" />
     <text class="hd-time">{{time}}</text>
     <text class="hd-title">词条详情</text>
-    <image class="hd-back" src="/common/back.png" @click="goBack" />
+    <div class="hd-back" @click="goBack">
+      <image src="/common/back.png" style="width:100%;height:100%;" />
+    </div>
 
     <scroll class="content-full" scroll-y="true" bounces="true">
       <div class="scroll-inner">

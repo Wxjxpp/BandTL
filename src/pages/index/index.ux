@@ -26,7 +26,10 @@
       <list-item class="empty-item" type="empty" if="{{query && results.length === 0}}">
         <text class="empty-text">未找到结果</text>
       </list-item>
-      <list-item class="empty-item" type="init" if="{{!query}}">
+      <list-item class="empty-item" type="noDict" if="{{!dictLoaded}}">
+        <text class="empty-text empty-error">词典加载失败</text>
+      </list-item>
+      <list-item class="empty-item" type="init" if="{{dictLoaded && !query}}">
         <text class="empty-text">输入单词开始查询</text>
       </list-item>
     </list>
@@ -177,16 +180,21 @@
   font-size: 28px;
   color: rgba(255, 255, 255, 0.5);
 }
+.empty-error {
+  color: #FF453A;
+}
 </style>
 
 <script>
   import router from '@system.router'
+  import prompt from '@system.prompt'
 
   export default {
     private: {
       query: '',
       results: [],
       dict: null,
+      dictLoaded: false,
       showKeyboard: false,
       time: ''
     },
@@ -196,8 +204,12 @@
       const that = this
       const dictMgr = this.$app.$def.dict
       dictMgr.getActiveDict(function (res) {
-        if (res.success && res.dict) {
+        if (res.success && res.dict && res.dict.words && res.dict.words.length > 0) {
           that.dict = res.dict
+          that.dictLoaded = true
+        } else {
+          that.dictLoaded = false
+          prompt.showToast({ message: '词典加载失败' })
         }
       })
     },
@@ -222,25 +234,33 @@
     },
 
     toggleKeyboard() {
-      this.showKeyboard = !this.showKeyboard
+      // 如果键盘正在显示，关闭它并触发搜索
+      if (this.showKeyboard) {
+        this.showKeyboard = false
+        this.doSearch()
+      } else {
+        this.showKeyboard = true
+      }
     },
 
     onInputComplete(evt) {
       const content = evt.detail && evt.detail.content
       if (content) {
         this.query = this.query + content
-        this.doSearch()
       }
     },
 
     onInputDelete() {
       if (this.query.length > 0) {
         this.query = this.query.slice(0, -1)
-        this.doSearch()
       }
     },
 
     doSearch() {
+      if (!this.dictLoaded) {
+        this.results = []
+        return
+      }
       if (!this.dict || !this.dict.words) {
         this.results = []
         return
