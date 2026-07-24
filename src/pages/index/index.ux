@@ -7,14 +7,14 @@
     <text class="hd-title">词典</text>
     <image class="menu-btn" src="/common/more.png" @click="goManage" />
 
-    <div class="search-area" if="{{!showKeyboard}}">
+    <div class="search-area">
       <div class="search-box" @click="toggleKeyboard">
         <text class="search-text" if="{{query}}">{{query}}</text>
         <text class="search-placeholder" if="{{!query}}">点击输入查询</text>
       </div>
     </div>
 
-    <list class="result-list" if="{{!showKeyboard}}">
+    <list class="result-list">
       <list-item class="result-item" for="{{results}}" tid="id" type="word" onclick="onWordClick">
         <div class="card">
           <div class="card-left">
@@ -223,9 +223,6 @@
 
     toggleKeyboard() {
       this.showKeyboard = !this.showKeyboard
-      if (!this.showKeyboard) {
-        this.doSearch()
-      }
     },
 
     onInputComplete(evt) {
