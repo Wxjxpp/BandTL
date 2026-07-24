@@ -9,6 +9,8 @@
     dict: dict,
 
     onCreate() {
+      dict.init()
+
       // 注册 interconnect 接收：把手机端 AstroBox 插件推送的词典分块交给 dict 模块处理
       try {
         const connect = interconnect.instance()

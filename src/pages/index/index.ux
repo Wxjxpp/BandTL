@@ -15,7 +15,21 @@
     </div>
 
     <list class="result-list">
-      <list-item class="result-item" for="{{results}}" tid="id" type="word" onclick="onWordClick">
+      <list-item class="result-item best-match" for="{{exactResults}}" tid="id" type="word" onclick="onWordClick">
+        <div class="card" style="background-color:{{$idx === 0 ? '#0A3388' : '#262626'}};border-color:{{$idx === 0 ? '#0A84FF' : 'rgba(255,255,255,0.06)'}};">
+          <div class="card-left">
+            <text class="card-label">{{$item.word}}</text>
+            <text class="card-sub" if="{{$item.translation}}">{{$item.translation}}</text>
+          </div>
+          <text class="form-tag" if="{{$item._matchedForm}}">{{$item._matchedForm}}</text>
+        </div>
+      </list-item>
+
+      <list-item class="fuzzy-header" type="header" if="{{fuzzyResults.length > 0}}">
+        <text class="fuzzy-label">模糊匹配</text>
+      </list-item>
+
+      <list-item class="result-item" for="{{fuzzyResults}}" tid="id" type="fuzzy" onclick="onWordClick">
         <div class="card">
           <div class="card-left">
             <text class="card-label">{{$item.word}}</text>
@@ -23,13 +37,11 @@
           </div>
         </div>
       </list-item>
-      <list-item class="empty-item" type="empty" if="{{query && results.length === 0}}">
+
+      <list-item class="empty-item" type="empty" if="{{query && exactResults.length === 0 && fuzzyResults.length === 0}}">
         <text class="empty-text">未找到结果</text>
       </list-item>
-      <list-item class="empty-item" type="noDict" if="{{!dictLoaded}}">
-        <text class="empty-text empty-error">词典加载失败</text>
-      </list-item>
-      <list-item class="empty-item" type="init" if="{{dictLoaded && !query}}">
+      <list-item class="empty-item" type="init" if="{{!query}}">
         <text class="empty-text">输入单词开始查询</text>
       </list-item>
     </list>
@@ -48,152 +60,94 @@
 
 <style>
 .page {
-  width: 336px;
-  height: 480px;
-  background-color: #000000;
-  position: relative;
+  width: 336px; height: 480px; background-color: #000000; position: relative;
   flex-direction: column;
 }
-
 .header-bg {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 336px;
-  height: 102px;
-  z-index: 1;
+  position: absolute; left: 0; top: 0; width: 336px; height: 102px; z-index: 1;
 }
 .hd-time {
-  position: absolute;
-  left: 78px;
-  top: 7px;
-  width: 180px;
-  height: 32px;
-  text-align: center;
-  font-size: 24px;
-  font-weight: bold;
-  color: rgba(255, 255, 255, 0.6);
-  z-index: 2;
+  position: absolute; left: 78px; top: 7px; width: 180px; height: 32px;
+  text-align: center; font-size: 24px; font-weight: bold;
+  color: rgba(255,255,255,0.6); z-index: 2;
 }
 .hd-title {
-  position: absolute;
-  left: 78px;
-  top: 35px;
-  width: 180px;
-  height: 42px;
-  text-align: center;
-  font-size: 32px;
-  font-weight: bold;
-  color: #ffffff;
-  z-index: 2;
+  position: absolute; left: 78px; top: 35px; width: 180px; height: 42px;
+  text-align: center; font-size: 32px; font-weight: bold; color: #ffffff; z-index: 2;
 }
 .menu-btn {
-  position: absolute;
-  right: 6px;
-  top: 19px;
-  width: 58px;
-  height: 58px;
-  z-index: 3;
+  position: absolute; right: 6px; top: 19px; width: 58px; height: 58px; z-index: 3;
 }
-
 .search-area {
-  position: relative;
-  z-index: 2;
-  flex-direction: row;
-  justify-content: center;
-  margin-top: 102px;
-  margin-bottom: 4px;
+  position: relative; z-index: 2; flex-direction: row; justify-content: center;
+  margin-top: 102px; margin-bottom: 4px;
 }
 .search-box {
-  width: 300px;
-  height: 60px;
-  background-color: #262626;
-  border-radius: 30px;
-  border: 3px solid rgba(255, 255, 255, 0.06);
-  justify-content: center;
-  align-items: center;
+  width: 300px; height: 60px; background-color: #262626; border-radius: 30px;
+  border: 3px solid rgba(255,255,255,0.06); justify-content: center; align-items: center;
 }
 .search-text {
-  font-size: 28px;
-  color: #ffffff;
-  padding-left: 24px;
-  padding-right: 24px;
-  lines: 1;
-  text-overflow: ellipsis;
+  font-size: 28px; color: #ffffff; padding-left: 24px; padding-right: 24px;
+  lines: 1; text-overflow: ellipsis;
 }
 .search-placeholder {
-  font-size: 26px;
-  color: #636366;
+  font-size: 26px; color: #636366;
 }
-
 .result-list {
-  flex: 1;
-  width: 100%;
-  position: relative;
-  z-index: 2;
+  flex: 1; width: 100%; position: relative; z-index: 2;
 }
 .result-item {
-  width: 100%;
-  flex-direction: row;
-  justify-content: center;
+  width: 100%; flex-direction: row; justify-content: center;
+}
+.best-match {
+  /* no extra style needed, inline style handles it */
 }
 .card {
-  width: 324px;
-  margin-top: 4px;
-  background-color: #262626;
-  border-radius: 36px;
-  border: 3px solid rgba(255, 255, 255, 0.06);
-  flex-direction: row;
-  align-items: center;
-  padding-left: 20px;
-  padding-right: 20px;
-  padding-top: 14px;
-  padding-bottom: 14px;
+  width: 324px; margin-top: 4px; border-radius: 36px;
+  border: 3px solid rgba(255,255,255,0.06);
+  flex-direction: row; align-items: center;
+  padding-left: 20px; padding-right: 20px;
+  padding-top: 14px; padding-bottom: 14px;
 }
 .card-left {
-  flex-direction: column;
-  flex: 1;
+  flex-direction: column; flex: 1;
 }
 .card-label {
-  font-size: 32px;
-  line-height: 40px;
-  font-weight: bold;
-  color: #ffffff;
-  lines: 1;
+  font-size: 32px; line-height: 40px; font-weight: bold; color: #ffffff; lines: 1;
 }
 .card-sub {
-  font-size: 24px;
-  line-height: 32px;
-  color: rgba(255, 255, 255, 0.6);
-  margin-top: 4px;
-  lines: 2;
-  text-overflow: ellipsis;
+  font-size: 24px; line-height: 32px; color: rgba(255,255,255,0.6);
+  margin-top: 4px; lines: 2; text-overflow: ellipsis;
 }
-
+.form-tag {
+  font-size: 20px; color: #0A84FF; font-weight: bold;
+  background-color: rgba(10,132,255,0.15); border-radius: 8px;
+  padding: 4px 8px; margin-left: 8px;
+}
+.fuzzy-header {
+  width: 100%; flex-direction: row; justify-content: center; margin-top: 12px;
+}
+.fuzzy-label {
+  width: 324px; font-size: 22px; color: rgba(255,255,255,0.3); font-weight: bold;
+  padding-left: 8px;
+}
 .empty-item {
-  width: 100%;
-  flex-direction: row;
-  justify-content: center;
-  margin-top: 80px;
+  width: 100%; flex-direction: row; justify-content: center; margin-top: 80px;
 }
 .empty-text {
-  font-size: 28px;
-  color: rgba(255, 255, 255, 0.5);
-}
-.empty-error {
-  color: #FF453A;
+  font-size: 28px; color: rgba(255,255,255,0.5);
 }
 </style>
 
 <script>
   import router from '@system.router'
-  import prompt from '@system.prompt'
   import dict from '../../common/scripts/dict'
 
   export default {
     private: {
       query: '',
-      results: [],
+      exactResults: [],
+      fuzzyResults: [],
       dictData: null,
       dictLoaded: false,
       showKeyboard: false,
@@ -202,14 +156,13 @@
 
     onInit() {
       this.updateTime()
-      const that = this
+      var that = this
       dict.getActiveDict(function (res) {
         if (res.success && res.dict && res.dict.words && res.dict.words.length > 0) {
           that.dictData = res.dict
           that.dictLoaded = true
         } else {
           that.dictLoaded = false
-          prompt.showToast({ message: '词典加载失败' })
         }
       })
     },
@@ -219,10 +172,8 @@
     },
 
     updateTime() {
-      const d = new Date()
-      const h = String(d.getHours()).padStart(2, '0')
-      const m = String(d.getMinutes()).padStart(2, '0')
-      this.time = h + ':' + m
+      var d = new Date()
+      this.time = String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0')
     },
 
     onBackPress() {
@@ -234,41 +185,52 @@
     },
 
     toggleKeyboard() {
-      if (this.showKeyboard) {
-        this.showKeyboard = false
-        this.doSearch()
-      } else {
-        this.showKeyboard = true
-      }
+      this.showKeyboard = !this.showKeyboard
     },
 
     onInputComplete(evt) {
-      const content = evt.detail && evt.detail.content
+      var content = evt.detail && evt.detail.content
       if (content) {
         this.query = this.query + content
+        this.doSearch()
       }
     },
 
     onInputDelete() {
       if (this.query.length > 0) {
         this.query = this.query.slice(0, -1)
+        this.doSearch()
       }
     },
 
     doSearch() {
-      if (!this.dictLoaded) {
-        this.results = []
-        return
-      }
       if (!this.dictData || !this.dictData.words) {
-        this.results = []
+        this.exactResults = []
+        this.fuzzyResults = []
         return
       }
-      this.results = dict.search(this.query, this.dictData.words, 50)
+      var result = dict.search(this.query, this.dictData.words, 50)
+      // 标记变形词匹配
+      var exact = result.exact || []
+      var fuzzy = result.fuzzy || []
+      for (var i = 0; i < exact.length; i++) {
+        var wl = (exact[i].word || '').toLowerCase()
+        if (wl !== this.query.toLowerCase()) {
+          var forms = exact[i].forms || []
+          for (var j = 0; j < forms.length; j++) {
+            if ((forms[j] || '').toLowerCase() === this.query.toLowerCase()) {
+              exact[i]._matchedForm = forms[j]
+              break
+            }
+          }
+        }
+      }
+      this.exactResults = exact
+      this.fuzzyResults = fuzzy
     },
 
     onWordClick(evt) {
-      const item = evt && evt.detail ? evt.detail : null
+      var item = evt && evt.detail ? evt.detail : null
       if (!item) return
       router.push({
         uri: '/detail',

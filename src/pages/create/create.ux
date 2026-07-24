@@ -1,0 +1,213 @@
+<template>
+  <div class="page">
+    <image class="header-bg" src="/common/hd.png" />
+    <text class="hd-time">{{time}}</text>
+    <text class="hd-title">{{dictName}}</text>
+    <div class="hd-back" @click="goBack">
+      <image src="/common/back.png" style="width:100%;height:100%;" />
+    </div>
+
+    <div class="add-bar" @click="showAddDialog">
+      <text class="add-text">+ 添加词条</text>
+    </div>
+
+    <list class="word-list">
+      <list-item class="word-item" for="{{words}}" tid="id" type="word" @longpress="onWordLongPress($item.word)">
+        <div class="word-card">
+          <div class="word-row">
+            <text class="word">{{$item.word}}</text>
+            <text class="phonetic" if="{{$item.phonetic}}">/{{$item.phonetic}}/</text>
+          </div>
+          <text class="trans">{{$item.translation}}</text>
+        </div>
+      </list-item>
+      <list-item class="empty-item" type="empty" if="{{words.length === 0}}">
+        <text class="empty-text">暂无词条，点击上方添加</text>
+      </list-item>
+    </list>
+  </div>
+</template>
+
+<style>
+.page {
+  width: 336px; height: 480px; background-color: #000000; position: relative;
+}
+.header-bg {
+  position: absolute; left: 0; top: 0; width: 336px; height: 102px; z-index: 1;
+}
+.hd-time {
+  position: absolute; left: 78px; top: 7px; width: 180px; height: 32px;
+  text-align: center; font-size: 24px; font-weight: bold;
+  color: rgba(255,255,255,0.6); z-index: 2;
+}
+.hd-title {
+  position: absolute; left: 78px; top: 35px; width: 180px; height: 42px;
+  text-align: center; font-size: 28px; font-weight: bold; color: #ffffff; z-index: 2;
+  lines: 1; text-overflow: ellipsis;
+}
+.hd-back {
+  position: absolute; left: 6px; top: 6px; width: 72px; height: 72px; z-index: 2;
+}
+.add-bar {
+  margin-top: 102px; width: 336px; height: 52px;
+  justify-content: center; align-items: center;
+  background-color: #1C1C1E; border-bottom: 1px solid #2C2C2E;
+}
+.add-text {
+  font-size: 26px; color: #0A84FF; font-weight: bold;
+}
+.word-list {
+  flex: 1; width: 100%;
+}
+.word-item {
+  width: 100%; flex-direction: row; justify-content: center;
+}
+.word-card {
+  width: 324px; margin-top: 4px;
+  background-color: #262626; border-radius: 24px;
+  border: 3px solid rgba(255,255,255,0.06);
+  flex-direction: column; padding: 12px 18px;
+}
+.word-row {
+  flex-direction: row; align-items: flex-end;
+}
+.word {
+  font-size: 28px; color: #ffffff; font-weight: bold; margin-right: 8px;
+}
+.phonetic {
+  font-size: 20px; color: rgba(255,255,255,0.5);
+}
+.trans {
+  font-size: 24px; color: rgba(255,255,255,0.7); margin-top: 4px;
+  lines: 2; text-overflow: ellipsis;
+}
+.empty-item {
+  width: 100%; flex-direction: row; justify-content: center; margin-top: 80px;
+}
+.empty-text {
+  font-size: 26px; color: rgba(255,255,255,0.4);
+}
+</style>
+
+<script>
+  import router from '@system.router'
+  import prompt from '@system.prompt'
+  import dict from '../../common/scripts/dict'
+
+  export default {
+    private: {
+      dictName: '',
+      words: [],
+      time: '',
+      isBuiltin: false
+    },
+
+    onInit() {
+      this.updateTime()
+      this.dictName = this.$routeParams.dictName || ''
+      this.loadWords()
+    },
+
+    onShow() {
+      this.updateTime()
+      this.loadWords()
+    },
+
+    updateTime() {
+      var d = new Date()
+      this.time = String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0')
+    },
+
+    loadWords() {
+      var that = this
+      if (!this.dictName) return
+      dict.getDictDetail(this.dictName, function (res) {
+        if (res.success) {
+          that.words = res.words || []
+          that.isBuiltin = res.source === 'builtin'
+        }
+      })
+    },
+
+    showAddDialog() {
+      if (this.isBuiltin) {
+        prompt.showToast({ message: '内置词典不可编辑' })
+        return
+      }
+      var that = this
+      prompt.showDialog({
+        title: '添加词条',
+        message: '请输入英文单词',
+        showInput: true,
+        buttons: [
+          { text: '取消', color: '#888888' },
+          { text: '下一步', color: '#0A84FF' }
+        ],
+        success: function (res1) {
+          if (res1.index === 1 && res1.value) {
+            var word = res1.value.trim()
+            prompt.showDialog({
+              title: '添加词条',
+              message: '请输入"' + word + '"的中文翻译',
+              showInput: true,
+              buttons: [
+                { text: '取消', color: '#888888' },
+                { text: '添加', color: '#30D158' }
+              ],
+              success: function (res2) {
+                if (res2.index === 1 && res2.value) {
+                  var trans = res2.value.trim()
+                  dict.addWord(that.dictName, word, trans, '', function (result) {
+                    if (result.success) {
+                      prompt.showToast({ message: '已添加' })
+                      that.loadWords()
+                    } else {
+                      prompt.showToast({ message: result.error || '添加失败' })
+                    }
+                  })
+                }
+              }
+            })
+          }
+        }
+      })
+    },
+
+    onWordLongPress(word) {
+      if (this.isBuiltin) {
+        prompt.showToast({ message: '内置词典不可编辑' })
+        return
+      }
+      var that = this
+      prompt.showDialog({
+        title: '删除词条',
+        message: '确定删除"' + word + '"吗？',
+        buttons: [
+          { text: '取消', color: '#888888' },
+          { text: '删除', color: '#FF453A' }
+        ],
+        success: function (res) {
+          if (res.index === 1) {
+            dict.deleteWord(that.dictName, word, function (result) {
+              if (result.success) {
+                prompt.showToast({ message: '已删除' })
+                that.loadWords()
+              } else {
+                prompt.showToast({ message: result.error || '删除失败' })
+              }
+            })
+          }
+        }
+      })
+    },
+
+    goBack() {
+      router.back()
+    },
+
+    onBackPress() {
+      router.back()
+      return true
+    }
+  }
+</script>
